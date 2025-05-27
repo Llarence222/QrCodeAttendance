@@ -64,6 +64,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9em;
+      min-width: 900px;
     }
     table, th, td {
       border: 1px solid #cc0000;
@@ -87,6 +88,10 @@
     }
     #toggleManualBtn:hover {
       background-color: #e6c200;
+    }
+    /* Scroll container for dashboard table */
+    #dashboardContainer {
+      overflow-x: auto;
     }
   </style>
 </head>
@@ -222,7 +227,7 @@
     </div>
   </div>
 
-  <div class="container">
+  <div class="container" id="dashboardContainer">
     <h2>Local Attendance Dashboard</h2>
     <table id="dashboard">
       <thead>
@@ -303,68 +308,88 @@
         return;
       }
       currentName = name;
-      const qrData = JSON.stringify({ name: name });
-      QRCode.toCanvas(qrcodeCanvas, qrData, { width: 180 }, (error) => {
-        if (error) {
-          console.error('QR Generation Error:', error);
-          clearCanvas();
-          goToScannerBtn.disabled = true;
-        } else {
-          goToScannerBtn.disabled = false;
-        }
+      // Include all fields in QR data, empty for now except name and type
+      const qrData = JSON.stringify({
+        type: selectedType,
+        name: name,
+        course: "",
+        year: "",
+        idNumber: "",
+        reason: "",
+        subject: "",
+        roomAssessment: ""
       });
+      QRCode.toCanvas(qrcodeCanvas, qrData, { width: 180 }, function (error) {
+        if (error) console.error(error);
+      });
+      goToScannerBtn.disabled = false;
     });
 
     // Step 3: Proceed to scanner
     goToScannerBtn.addEventListener('click', () => {
       nameSection.style.display = 'none';
       scannerSection.style.display = 'block';
-      startScanner();
-    });
 
-    // Start scanner
-    function startScanner() {
       if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear();
+        html5QrcodeScanner.clear().catch(e => console.error(e));
       }
+
       html5QrcodeScanner = new Html5Qrcode("reader");
+
+      const config = { fps: 10, qrbox: 250 };
 
       html5QrcodeScanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        qrCodeMessage => {
-          // QR scanned, parse and proceed to form
+        config,
+        (qrCodeMessage) => {
+          // QR code scanned
           try {
             const parsed = JSON.parse(qrCodeMessage);
-            if (!parsed.name) {
+            if (!parsed.name || !parsed.type) {
               alert('Invalid QR code data.');
               return;
             }
             currentName = parsed.name;
+            selectedType = parsed.type;
+            // Pre-fill the form fields
             displayType.value = selectedType;
             displayName.value = currentName;
+            document.getElementById('course').value = parsed.course || "";
+            document.getElementById('year').value = parsed.year || "";
+            document.getElementById('idNumber').value = parsed.idNumber || "";
+            document.getElementById('reason').value = parsed.reason || "";
+            document.getElementById('subject').value = parsed.subject || "";
+            document.getElementById('roomAssessment').value = parsed.roomAssessment || "";
+
             scannerSection.style.display = 'none';
             formSection.style.display = 'block';
-            html5QrcodeScanner.stop();
+            html5QrcodeScanner.stop().then(() => {
+              // Scanner stopped
+            }).catch(err => {
+              console.error('Failed to stop scanner.', err);
+            });
           } catch (e) {
-            alert('Error reading QR code.');
+            alert('Failed to parse QR code.');
+            console.error(e);
           }
         },
-        errorMessage => {
-          // Ignore scan errors
+        (errorMessage) => {
+          // QR code scan failure, ignore or log if needed
         }
       ).catch(err => {
-        alert('Unable to start scanning: ' + err);
+        alert('Unable to start QR scanner.');
+        console.error(err);
       });
-    }
+    });
 
-    // Submit attendance form
-    attendanceForm.addEventListener('submit', e => {
+    // Step 4: Submit attendance form
+    attendanceForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const entry = {
-        name: displayName.value.trim(),
+      // Collect all form data
+      const data = {
         type: displayType.value,
+        name: displayName.value,
         course: document.getElementById('course').value.trim(),
         year: document.getElementById('year').value,
         idNumber: document.getElementById('idNumber').value.trim(),
@@ -375,14 +400,56 @@
         time: new Date().toLocaleTimeString()
       };
 
-      addToDashboard(entry);
+      if (!data.reason) {
+        alert('Please select a reason.');
+        return;
+      }
 
-      attendanceForm.reset();
+      saveAttendanceEntry(data);
+      alert('Attendance recorded successfully!');
+
+      // Reset and go back to initial screen
       formSection.style.display = 'none';
       typeSection.style.display = 'block';
+      attendanceTypeSelect.value = '';
     });
 
-    // Manual attendance toggle
+    // Save entry to localStorage and update dashboard
+    function saveAttendanceEntry(entry) {
+      let entries = JSON.parse(localStorage.getItem('attendanceEntries') || '[]');
+      entries.push(entry);
+      localStorage.setItem('attendanceEntries', JSON.stringify(entries));
+      addEntryToDashboard(entry);
+    }
+
+    // Add one row to dashboard table
+    function addEntryToDashboard(entry) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${entry.name}</td>
+        <td>${entry.type}</td>
+        <td>${entry.course}</td>
+        <td>${entry.year}</td>
+        <td>${entry.idNumber}</td>
+        <td>${entry.reason}</td>
+        <td>${entry.subject}</td>
+        <td>${entry.roomAssessment}</td>
+        <td>${entry.date}</td>
+        <td>${entry.time}</td>
+      `;
+      dashboardBody.appendChild(tr);
+    }
+
+    // Load dashboard entries on page load
+    function loadDashboard() {
+      let entries = JSON.parse(localStorage.getItem('attendanceEntries') || '[]');
+      dashboardBody.innerHTML = '';
+      entries.forEach(addEntryToDashboard);
+    }
+
+    loadDashboard();
+
+    // Toggle manual attendance form
     toggleManualBtn.addEventListener('click', () => {
       if (manualSection.style.display === 'none') {
         manualSection.style.display = 'block';
@@ -393,13 +460,13 @@
       }
     });
 
-    // Manual form submit
+    // Manual form submission
     manualForm.addEventListener('submit', e => {
       e.preventDefault();
 
-      const entry = {
-        name: document.getElementById('manualName').value.trim(),
+      const data = {
         type: document.getElementById('manualType').value,
+        name: document.getElementById('manualName').value.trim(),
         course: document.getElementById('manualCourse').value.trim(),
         year: document.getElementById('manualYear').value,
         idNumber: document.getElementById('manualIdNumber').value.trim(),
@@ -410,20 +477,17 @@
         time: new Date().toLocaleTimeString()
       };
 
-      addToDashboard(entry);
+      if (!data.name || !data.type || !data.reason) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      saveAttendanceEntry(data);
+      alert('Manual attendance recorded.');
+
       manualForm.reset();
     });
 
-    // Add entry to dashboard
-    function addToDashboard(entry) {
-      const tr = document.createElement('tr');
-      for (const key of ['name', 'type', 'course', 'year', 'idNumber', 'reason', 'subject', 'roomAssessment', 'date', 'time']) {
-        const td = document.createElement('td');
-        td.textContent = entry[key] || '';
-        tr.appendChild(td);
-      }
-      dashboardBody.appendChild(tr);
-    }
   </script>
 </body>
 </html>
