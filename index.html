@@ -89,7 +89,6 @@
     #toggleManualBtn:hover {
       background-color: #e6c200;
     }
-    /* Scroll container for dashboard table */
     #dashboardContainer {
       overflow-x: auto;
     }
@@ -97,397 +96,266 @@
 </head>
 <body>
 
-  <div class="container" id="typeSection">
-    <h1>EQC QR Attendance</h1>
-    <label for="attendanceType">Select Attendance Type:</label>
-    <select id="attendanceType">
-      <option value="" disabled selected>-- Choose --</option>
-      <option value="Student Attendance">Student Attendance</option>
-      <option value="Event Attendance">Event Attendance</option>
-    </select>
-    <button id="nextToNameBtn">Next</button>
-  </div>
+<div class="container" id="typeSection">
+  <h1>EQC QR Attendance</h1>
+  <label for="attendanceType">Select Attendance Type:</label>
+  <select id="attendanceType">
+    <option value="" disabled selected>-- Choose --</option>
+    <option value="Student Attendance">Student Attendance</option>
+    <option value="Event Attendance">Event Attendance</option>
+  </select>
+  <button id="nextToNameBtn">Next</button>
+</div>
 
-  <div class="container" id="nameSection" style="display:none;">
-    <label for="inputName">Enter Your Name:</label>
-    <input type="text" id="inputName" placeholder="Full Name" autocomplete="off" />
-    <canvas id="qrcode" width="180" height="180"></canvas>
-    <button id="goToScannerBtn" disabled>Proceed to Scan</button>
-  </div>
+<div class="container" id="nameSection" style="display:none;">
+  <label for="inputName">Enter Your Name:</label>
+  <input type="text" id="inputName" placeholder="Full Name" autocomplete="off" />
+  <canvas id="qrcode" width="180" height="180"></canvas>
+  <button id="goToScannerBtn" disabled>Proceed to Scan</button>
+</div>
 
-  <div class="container" id="scannerSection" style="display:none;">
-    <h3>Scan Your QR Code</h3>
-    <div id="reader"></div>
-  </div>
+<div class="container" id="scannerSection" style="display:none;">
+  <h3>Scan Your QR Code</h3>
+  <div id="reader"></div>
+</div>
 
-  <div class="container" id="formSection">
-    <h3>Fill Attendance Details</h3>
-    <form id="attendanceForm">
-      <div>
-        <label for="displayType">Attendance Type:</label>
-        <input type="text" id="displayType" readonly />
-      </div>
-      <div>
-        <label for="displayName">Name:</label>
-        <input type="text" id="displayName" readonly />
-      </div>
-      <div>
-        <label for="course">Course:</label>
-        <input type="text" id="course" placeholder="Your course" />
-      </div>
-      <div>
-        <label for="year">Year:</label>
-        <select id="year">
-          <option value="" disabled selected>-- Select Year --</option>
-          <option value="1st Year">1st Year</option>
-          <option value="2nd Year">2nd Year</option>
-          <option value="3rd Year">3rd Year</option>
-          <option value="4th Year">4th Year</option>
-        </select>
-      </div>
-      <div>
-        <label for="idNumber">ID Number:</label>
-        <input type="text" id="idNumber" placeholder="Your ID number" />
-      </div>
-      <div>
-        <label for="reason">Reason:</label>
-        <select id="reason" required>
-          <option value="" disabled selected>-- Select Reason --</option>
-          <option value="Attending Class">Attending Class</option>
-          <option value="Submitting Activities">Submitting Activities</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div>
-        <label for="subject">Subject:</label>
-        <input type="text" id="subject" placeholder="Subject (if applicable)" />
-      </div>
-      <div>
-        <label for="roomAssessment">Room Assessment (optional):</label>
-        <textarea id="roomAssessment" rows="2" placeholder="Any notes"></textarea>
-      </div>
-      <button type="submit">Submit Attendance</button>
-    </form>
-  </div>
-
-  <div class="container">
-    <button id="toggleManualBtn">Show Manual Attendance Form</button>
-    <div id="manualSection" style="display:none; margin-top:15px;">
-      <h3>Manual Attendance Entry</h3>
-      <form id="manualForm">
-        <div>
-          <label for="manualName">Name:</label>
-          <input type="text" id="manualName" placeholder="Full Name" required />
-        </div>
-        <div>
-          <label for="manualType">Attendance Type:</label>
-          <select id="manualType" required>
-            <option value="" disabled selected>-- Choose --</option>
-            <option value="Student Attendance">Student Attendance</option>
-            <option value="Event Attendance">Event Attendance</option>
-          </select>
-        </div>
-        <div>
-          <label for="manualCourse">Course:</label>
-          <input type="text" id="manualCourse" placeholder="Your course" />
-        </div>
-        <div>
-          <label for="manualYear">Year:</label>
-          <select id="manualYear">
-            <option value="" disabled selected>-- Select Year --</option>
-            <option value="1st Year">1st Year</option>
-            <option value="2nd Year">2nd Year</option>
-            <option value="3rd Year">3rd Year</option>
-            <option value="4th Year">4th Year</option>
-          </select>
-        </div>
-        <div>
-          <label for="manualIdNumber">ID Number:</label>
-          <input type="text" id="manualIdNumber" placeholder="Your ID number" />
-        </div>
-        <div>
-          <label for="manualReason">Reason:</label>
-          <select id="manualReason" required>
-            <option value="" disabled selected>-- Select Reason --</option>
-            <option value="Attending Class">Attending Class</option>
-            <option value="Submitting Activities">Submitting Activities</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div>
-          <label for="manualSubject">Subject:</label>
-          <input type="text" id="manualSubject" placeholder="Subject (if applicable)" />
-        </div>
-        <div>
-          <label for="manualRoomAssessment">Room Assessment (optional):</label>
-          <textarea id="manualRoomAssessment" rows="2" placeholder="Any notes"></textarea>
-        </div>
-        <button type="submit">Submit Manual Attendance</button>
-      </form>
+<div class="container" id="formSection">
+  <h3>Fill Attendance Details</h3>
+  <form id="attendanceForm">
+    <div>
+      <label for="displayType">Attendance Type:</label>
+      <input type="text" id="displayType" readonly />
     </div>
-  </div>
+    <div>
+      <label for="displayName">Name:</label>
+      <input type="text" id="displayName" readonly />
+    </div>
 
-  <div class="container" id="dashboardContainer">
-    <h2>Local Attendance Dashboard</h2>
-    <table id="dashboard">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Course</th>
-          <th>Year</th>
-          <th>ID No.</th>
-          <th>Reason</th>
-          <th>Subject</th>
-          <th>Room Assessment</th>
-          <th>Date</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="dashboardBody"></tbody>
-    </table>
-  </div>
+    <div id="studentFields">
+      <label for="course">Course:</label>
+      <input type="text" id="course" placeholder="Your course" />
+      <label for="year">Year:</label>
+      <select id="year">
+        <option value="" disabled selected>-- Select Year --</option>
+        <option value="1st Year">1st Year</option>
+        <option value="2nd Year">2nd Year</option>
+        <option value="3rd Year">3rd Year</option>
+        <option value="4th Year">4th Year</option>
+      </select>
+      <label for="idNumber">ID Number:</label>
+      <input type="text" id="idNumber" placeholder="Your ID number" />
+      <label for="reason">Reason:</label>
+      <select id="reason">
+        <option value="" disabled selected>-- Select Reason --</option>
+        <option value="Attending Class">Attending Class</option>
+        <option value="Submitting Activities">Submitting Activities</option>
+        <option value="Other">Other</option>
+      </select>
+      <label for="subject">Subject:</label>
+      <input type="text" id="subject" placeholder="Subject (if applicable)" />
+      <label for="roomAssessment">Room Assessment (optional):</label>
+      <textarea id="roomAssessment" rows="2" placeholder="Any notes"></textarea>
+    </div>
 
-  <script>
-    // Elements
-    const typeSection = document.getElementById('typeSection');
-    const nameSection = document.getElementById('nameSection');
-    const scannerSection = document.getElementById('scannerSection');
-    const formSection = document.getElementById('formSection');
-    const manualSection = document.getElementById('manualSection');
-    const toggleManualBtn = document.getElementById('toggleManualBtn');
+    <div id="eventFields" style="display:none;">
+      <label for="eventType">Event Type:</label>
+      <input type="text" id="eventType" placeholder="e.g. Seminar, Workshop" />
+      <label for="eventTitle">Title of the Event:</label>
+      <input type="text" id="eventTitle" placeholder="Event Title" />
+      <label for="eventDate">Date of Event:</label>
+      <input type="date" id="eventDate" />
+      <label for="facilitator">Facilitator:</label>
+      <input type="text" id="facilitator" placeholder="Facilitator's Name" />
+    </div>
 
-    const attendanceTypeSelect = document.getElementById('attendanceType');
-    const nextToNameBtn = document.getElementById('nextToNameBtn');
+    <button type="submit">Submit Attendance</button>
+  </form>
+</div>
 
-    const inputName = document.getElementById('inputName');
-    const qrcodeCanvas = document.getElementById('qrcode');
-    const goToScannerBtn = document.getElementById('goToScannerBtn');
+<div class="container" id="dashboardContainer">
+  <h2>Local Attendance Dashboard</h2>
+  <table id="dashboard">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Course/Event Type</th>
+        <th>Year/Event Title</th>
+        <th>ID No./Event Date</th>
+        <th>Reason/Facilitator</th>
+        <th>Subject</th>
+        <th>Room Assessment</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="dashboardBody"></tbody>
+  </table>
+</div>
 
-    const readerDiv = document.getElementById('reader');
+<script>
+  const typeSection = document.getElementById('typeSection');
+  const nameSection = document.getElementById('nameSection');
+  const scannerSection = document.getElementById('scannerSection');
+  const formSection = document.getElementById('formSection');
+  const attendanceTypeSelect = document.getElementById('attendanceType');
+  const nextToNameBtn = document.getElementById('nextToNameBtn');
+  const inputName = document.getElementById('inputName');
+  const qrcodeCanvas = document.getElementById('qrcode');
+  const goToScannerBtn = document.getElementById('goToScannerBtn');
+  const displayType = document.getElementById('displayType');
+  const displayName = document.getElementById('displayName');
+  const attendanceForm = document.getElementById('attendanceForm');
+  const dashboardBody = document.getElementById('dashboardBody');
+  const studentFields = document.getElementById('studentFields');
+  const eventFields = document.getElementById('eventFields');
 
-    const attendanceForm = document.getElementById('attendanceForm');
-    const displayType = document.getElementById('displayType');
-    const displayName = document.getElementById('displayName');
+  let selectedType = '';
+  let currentName = '';
 
-    const dashboardBody = document.getElementById('dashboardBody');
+  nextToNameBtn.addEventListener('click', () => {
+    const val = attendanceTypeSelect.value;
+    if (!val) {
+      alert('Please select attendance type.');
+      return;
+    }
+    selectedType = val;
+    typeSection.style.display = 'none';
+    nameSection.style.display = 'block';
+    goToScannerBtn.disabled = true;
+    inputName.value = '';
+    clearCanvas();
+  });
 
-    const manualForm = document.getElementById('manualForm');
+  function clearCanvas() {
+    const ctx = qrcodeCanvas.getContext('2d');
+    ctx.clearRect(0, 0, qrcodeCanvas.width, qrcodeCanvas.height);
+  }
 
-    let html5QrcodeScanner = null;
-    let selectedType = '';
-    let currentName = '';
-
-    // Step 1: Select attendance type
-    nextToNameBtn.addEventListener('click', () => {
-      const val = attendanceTypeSelect.value;
-      if (!val) {
-        alert('Please select attendance type.');
-        return;
-      }
-      selectedType = val;
-      typeSection.style.display = 'none';
-      nameSection.style.display = 'block';
-      goToScannerBtn.disabled = true; // disable until name typed
-      inputName.value = '';
+  inputName.addEventListener('input', () => {
+    const name = inputName.value.trim();
+    if (!name) {
       clearCanvas();
-    });
-
-    // Clear canvas helper
-    function clearCanvas() {
-      const ctx = qrcodeCanvas.getContext('2d');
-      ctx.clearRect(0, 0, qrcodeCanvas.width, qrcodeCanvas.height);
+      goToScannerBtn.disabled = true;
+      return;
     }
-
-    // Step 2: Generate QR live on input
-    inputName.addEventListener('input', () => {
-      const name = inputName.value.trim();
-      if (!name) {
-        clearCanvas();
-        goToScannerBtn.disabled = true;
-        return;
-      }
-      currentName = name;
-      // Include all fields in QR data, empty for now except name and type
-      const qrData = JSON.stringify({
-        type: selectedType,
-        name: name,
-        course: "",
-        year: "",
-        idNumber: "",
-        reason: "",
-        subject: "",
-        roomAssessment: ""
-      });
-      QRCode.toCanvas(qrcodeCanvas, qrData, { width: 180 }, function (error) {
-        if (error) console.error(error);
-      });
-      goToScannerBtn.disabled = false;
+    currentName = name;
+    const qrData = JSON.stringify({ type: selectedType, name });
+    QRCode.toCanvas(qrcodeCanvas, qrData, { width: 180 }, function (error) {
+      if (error) console.error(error);
     });
+    goToScannerBtn.disabled = false;
+  });
 
-    // Step 3: Proceed to scanner
-    goToScannerBtn.addEventListener('click', () => {
-      nameSection.style.display = 'none';
-      scannerSection.style.display = 'block';
+  goToScannerBtn.addEventListener('click', () => {
+    nameSection.style.display = 'none';
+    scannerSection.style.display = 'block';
 
-      if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(e => console.error(e));
-      }
+    const html5QrcodeScanner = new Html5Qrcode("reader");
 
-      html5QrcodeScanner = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: 250 };
 
-      const config = { fps: 10, qrbox: 250 };
-
-      html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        config,
-        (qrCodeMessage) => {
-          // QR code scanned
-          try {
-            const parsed = JSON.parse(qrCodeMessage);
-            if (!parsed.name || !parsed.type) {
-              alert('Invalid QR code data.');
-              return;
-            }
-            currentName = parsed.name;
-            selectedType = parsed.type;
-            // Pre-fill the form fields
-            displayType.value = selectedType;
-            displayName.value = currentName;
-            document.getElementById('course').value = parsed.course || "";
-            document.getElementById('year').value = parsed.year || "";
-            document.getElementById('idNumber').value = parsed.idNumber || "";
-            document.getElementById('reason').value = parsed.reason || "";
-            document.getElementById('subject').value = parsed.subject || "";
-            document.getElementById('roomAssessment').value = parsed.roomAssessment || "";
-
-            scannerSection.style.display = 'none';
-            formSection.style.display = 'block';
-            html5QrcodeScanner.stop().then(() => {
-              // Scanner stopped
-            }).catch(err => {
-              console.error('Failed to stop scanner.', err);
-            });
-          } catch (e) {
-            alert('Failed to parse QR code.');
-            console.error(e);
+    html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      (qrCodeMessage) => {
+        try {
+          const parsed = JSON.parse(qrCodeMessage);
+          if (!parsed.name || !parsed.type) {
+            alert('Invalid QR code data.');
+            return;
           }
-        },
-        (errorMessage) => {
-          // QR code scan failure, ignore or log if needed
+          currentName = parsed.name;
+          selectedType = parsed.type;
+          displayType.value = selectedType;
+          displayName.value = currentName;
+
+          studentFields.style.display = selectedType === 'Student Attendance' ? 'block' : 'none';
+          eventFields.style.display = selectedType === 'Event Attendance' ? 'block' : 'none';
+
+          scannerSection.style.display = 'none';
+          formSection.style.display = 'block';
+          html5QrcodeScanner.stop();
+        } catch (e) {
+          alert('Failed to parse QR code.');
+          console.error(e);
         }
-      ).catch(err => {
-        alert('Unable to start QR scanner.');
-        console.error(err);
-      });
-    });
-
-    // Step 4: Submit attendance form
-    attendanceForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      // Collect all form data
-      const data = {
-        type: displayType.value,
-        name: displayName.value,
-        course: document.getElementById('course').value.trim(),
-        year: document.getElementById('year').value,
-        idNumber: document.getElementById('idNumber').value.trim(),
-        reason: document.getElementById('reason').value,
-        subject: document.getElementById('subject').value.trim(),
-        roomAssessment: document.getElementById('roomAssessment').value.trim(),
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-      };
-
-      if (!data.reason) {
-        alert('Please select a reason.');
-        return;
       }
-
-      saveAttendanceEntry(data);
-      alert('Attendance recorded successfully!');
-
-      // Reset and go back to initial screen
-      formSection.style.display = 'none';
-      typeSection.style.display = 'block';
-      attendanceTypeSelect.value = '';
+    ).catch(err => {
+      alert('Unable to start QR scanner.');
+      console.error(err);
     });
+  });
 
-    // Save entry to localStorage and update dashboard
-    function saveAttendanceEntry(entry) {
-      let entries = JSON.parse(localStorage.getItem('attendanceEntries') || '[]');
-      entries.push(entry);
-      localStorage.setItem('attendanceEntries', JSON.stringify(entries));
-      addEntryToDashboard(entry);
+  attendanceForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = {
+      type: displayType.value,
+      name: displayName.value,
+      course: '',
+      year: '',
+      idNumber: '',
+      reason: '',
+      subject: '',
+      roomAssessment: '',
+      date: new Date().toLocaleDateString(),
+      time: new Date().toLocaleTimeString()
+    };
+
+    if (selectedType === 'Student Attendance') {
+      data.course = document.getElementById('course').value.trim();
+      data.year = document.getElementById('year').value;
+      data.idNumber = document.getElementById('idNumber').value.trim();
+      data.reason = document.getElementById('reason').value;
+      data.subject = document.getElementById('subject').value.trim();
+      data.roomAssessment = document.getElementById('roomAssessment').value.trim();
+    } else {
+      data.course = document.getElementById('eventType').value.trim();
+      data.year = document.getElementById('eventTitle').value.trim();
+      data.idNumber = document.getElementById('eventDate').value;
+      data.reason = document.getElementById('facilitator').value.trim();
     }
 
-    // Add one row to dashboard table
-    function addEntryToDashboard(entry) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${entry.name}</td>
-        <td>${entry.type}</td>
-        <td>${entry.course}</td>
-        <td>${entry.year}</td>
-        <td>${entry.idNumber}</td>
-        <td>${entry.reason}</td>
-        <td>${entry.subject}</td>
-        <td>${entry.roomAssessment}</td>
-        <td>${entry.date}</td>
-        <td>${entry.time}</td>
-      `;
-      dashboardBody.appendChild(tr);
-    }
+    saveAttendanceEntry(data);
+    alert('Attendance recorded successfully!');
 
-    // Load dashboard entries on page load
-    function loadDashboard() {
-      let entries = JSON.parse(localStorage.getItem('attendanceEntries') || '[]');
-      dashboardBody.innerHTML = '';
-      entries.forEach(addEntryToDashboard);
-    }
+    formSection.style.display = 'none';
+    typeSection.style.display = 'block';
+    attendanceTypeSelect.value = '';
+  });
 
-    loadDashboard();
+  function saveAttendanceEntry(entry) {
+    let entries = JSON.parse(localStorage.getItem('attendanceEntries') || '[]');
+    entries.push(entry);
+    localStorage.setItem('attendanceEntries', JSON.stringify(entries));
+    addEntryToDashboard(entry);
+  }
 
-    // Toggle manual attendance form
-    toggleManualBtn.addEventListener('click', () => {
-      if (manualSection.style.display === 'none') {
-        manualSection.style.display = 'block';
-        toggleManualBtn.textContent = 'Hide Manual Attendance Form';
-      } else {
-        manualSection.style.display = 'none';
-        toggleManualBtn.textContent = 'Show Manual Attendance Form';
-      }
-    });
+  function addEntryToDashboard(entry) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${entry.name}</td>
+      <td>${entry.type}</td>
+      <td>${entry.course}</td>
+      <td>${entry.year}</td>
+      <td>${entry.idNumber}</td>
+      <td>${entry.reason}</td>
+      <td>${entry.subject || '-'}</td>
+      <td>${entry.roomAssessment || '-'}</td>
+      <td>${entry.date}</td>
+      <td>${entry.time}</td>
+    `;
+    dashboardBody.appendChild(tr);
+  }
 
-    // Manual form submission
-    manualForm.addEventListener('submit', e => {
-      e.preventDefault();
+  function loadDashboard() {
+    let entries = JSON.parse(localStorage.getItem('attendanceEntries') || '[]');
+    dashboardBody.innerHTML = '';
+    entries.forEach(addEntryToDashboard);
+  }
 
-      const data = {
-        type: document.getElementById('manualType').value,
-        name: document.getElementById('manualName').value.trim(),
-        course: document.getElementById('manualCourse').value.trim(),
-        year: document.getElementById('manualYear').value,
-        idNumber: document.getElementById('manualIdNumber').value.trim(),
-        reason: document.getElementById('manualReason').value,
-        subject: document.getElementById('manualSubject').value.trim(),
-        roomAssessment: document.getElementById('manualRoomAssessment').value.trim(),
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-      };
+  loadDashboard();
+</script>
 
-      if (!data.name || !data.type || !data.reason) {
-        alert('Please fill in all required fields.');
-        return;
-      }
-
-      saveAttendanceEntry(data);
-      alert('Manual attendance recorded.');
-
-      manualForm.reset();
-    });
-
-  </script>
 </body>
 </html>
