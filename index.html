@@ -53,6 +53,7 @@
       margin: 20px auto;
       width: 180px;
       height: 180px;
+      display: block;
     }
     #reader {
       margin: 20px auto;
@@ -104,9 +105,9 @@
 
   <div class="container" id="nameSection" style="display:none;">
     <label for="inputName">Enter Your Name:</label>
-    <input type="text" id="inputName" placeholder="Full Name" />
-    <button id="generateQRBtn">Generate QR Code</button>
-    <div id="qrcode"></div>
+    <input type="text" id="inputName" placeholder="Full Name" autocomplete="off" />
+    <canvas id="qrcode" width="180" height="180"></canvas>
+    <button id="goToScannerBtn" disabled>Proceed to Scan</button>
   </div>
 
   <div class="container" id="scannerSection" style="display:none;">
@@ -255,8 +256,8 @@
     const nextToNameBtn = document.getElementById('nextToNameBtn');
 
     const inputName = document.getElementById('inputName');
-    const generateQRBtn = document.getElementById('generateQRBtn');
-    const qrcodeDiv = document.getElementById('qrcode');
+    const qrcodeCanvas = document.getElementById('qrcode');
+    const goToScannerBtn = document.getElementById('goToScannerBtn');
 
     const readerDiv = document.getElementById('reader');
 
@@ -269,10 +270,8 @@
     const manualForm = document.getElementById('manualForm');
 
     let html5QrcodeScanner = null;
-
-    // State
     let selectedType = '';
-    let scannedName = '';
+    let currentName = '';
 
     // Step 1: Select attendance type
     nextToNameBtn.addEventListener('click', () => {
@@ -284,155 +283,106 @@
       selectedType = val;
       typeSection.style.display = 'none';
       nameSection.style.display = 'block';
+      goToScannerBtn.disabled = true; // disable until name typed
+      inputName.value = '';
+      clearCanvas();
     });
 
-    // Step 2: Enter name and generate QR code
-    generateQRBtn.addEventListener('click', () => {
+    // Clear canvas helper
+    function clearCanvas() {
+      const ctx = qrcodeCanvas.getContext('2d');
+      ctx.clearRect(0, 0, qrcodeCanvas.width, qrcodeCanvas.height);
+    }
+
+    // Step 2: Generate QR live on input
+    inputName.addEventListener('input', () => {
       const name = inputName.value.trim();
       if (!name) {
-        alert('Please enter your name.');
+        clearCanvas();
+        goToScannerBtn.disabled = true;
         return;
       }
-      scannedName = name;
-
-      // Clear previous QR code if any
-      qrcodeDiv.innerHTML = '';
-
-      // Generate QR code with format: JSON string with name and type
-      const qrData = JSON.stringify({name: scannedName, type: selectedType});
-      QRCode.toCanvas(qrcodeDiv, qrData, {width: 180}, function (error) {
+      currentName = name;
+      const qrData = JSON.stringify({ name: name });
+      QRCode.toCanvas(qrcodeCanvas, qrData, { width: 180 }, (error) => {
         if (error) {
-          alert('Failed to generate QR code.');
-          console.error(error);
-          return;
+          console.error('QR Generation Error:', error);
+          clearCanvas();
+          goToScannerBtn.disabled = true;
+        } else {
+          goToScannerBtn.disabled = false;
         }
-        // Show scanner after QR code generated
-        nameSection.style.display = 'none';
-        scannerSection.style.display = 'block';
-
-        startScanner();
       });
     });
 
-    // Step 3: Start QR code scanner
+    // Step 3: Proceed to scanner
+    goToScannerBtn.addEventListener('click', () => {
+      nameSection.style.display = 'none';
+      scannerSection.style.display = 'block';
+      startScanner();
+    });
+
+    // Start scanner
     function startScanner() {
       if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(console.error);
+        html5QrcodeScanner.clear();
       }
-
       html5QrcodeScanner = new Html5Qrcode("reader");
 
-      const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-        // Stop scanning once decoded
-        html5QrcodeScanner.stop().then(() => {
-          scannerSection.style.display = 'none';
-          showAttendanceForm(decodedText);
-        }).catch(err => {
-          console.error('Failed to stop scanner:', err);
-        });
-      };
-
-      const config = {fps: 10, qrbox: 250};
-
-      html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
-        .catch(err => {
-          alert('Unable to start scanning: ' + err);
-          console.error(err);
-        });
+      html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+          // QR scanned, parse and proceed to form
+          try {
+            const parsed = JSON.parse(qrCodeMessage);
+            if (!parsed.name) {
+              alert('Invalid QR code data.');
+              return;
+            }
+            currentName = parsed.name;
+            displayType.value = selectedType;
+            displayName.value = currentName;
+            scannerSection.style.display = 'none';
+            formSection.style.display = 'block';
+            html5QrcodeScanner.stop();
+          } catch (e) {
+            alert('Error reading QR code.');
+          }
+        },
+        errorMessage => {
+          // Ignore scan errors
+        }
+      ).catch(err => {
+        alert('Unable to start scanning: ' + err);
+      });
     }
 
-    // Step 4: Show attendance form prefilled
-    function showAttendanceForm(decodedText) {
-      let data;
-      try {
-        data = JSON.parse(decodedText);
-      } catch (e) {
-        alert('Invalid QR code scanned.');
-        console.error(e);
-        return;
-      }
-
-      if (!data.name || !data.type) {
-        alert('QR code missing required data.');
-        return;
-      }
-
-      displayName.value = data.name;
-      displayType.value = data.type;
-
-      formSection.style.display = 'block';
-    }
-
-    // Step 5: Submit attendance form
+    // Submit attendance form
     attendanceForm.addEventListener('submit', e => {
       e.preventDefault();
 
-      const course = document.getElementById('course').value.trim();
-      const year = document.getElementById('year').value;
-      const idNumber = document.getElementById('idNumber').value.trim();
-      const reason = document.getElementById('reason').value;
-      const subject = document.getElementById('subject').value.trim();
-      const roomAssessment = document.getElementById('roomAssessment').value.trim();
-
-      if (!course || !year || !idNumber || !reason) {
-        alert('Please fill all required fields.');
-        return;
-      }
-
-      addAttendance({
-        name: displayName.value,
+      const entry = {
+        name: displayName.value.trim(),
         type: displayType.value,
-        course,
-        year,
-        idNumber,
-        reason,
-        subject,
-        roomAssessment,
-        date: new Date()
-      });
+        course: document.getElementById('course').value.trim(),
+        year: document.getElementById('year').value,
+        idNumber: document.getElementById('idNumber').value.trim(),
+        reason: document.getElementById('reason').value,
+        subject: document.getElementById('subject').value.trim(),
+        roomAssessment: document.getElementById('roomAssessment').value.trim(),
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString()
+      };
 
-      alert('Attendance submitted!');
+      addToDashboard(entry);
 
-      resetToStart();
-    });
-
-    // Add attendance entry to dashboard table
-    function addAttendance(entry) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${entry.name}</td>
-        <td>${entry.type}</td>
-        <td>${entry.course}</td>
-        <td>${entry.year}</td>
-        <td>${entry.idNumber}</td>
-        <td>${entry.reason}</td>
-        <td>${entry.subject}</td>
-        <td>${entry.roomAssessment}</td>
-        <td>${entry.date.toLocaleDateString()}</td>
-        <td>${entry.date.toLocaleTimeString()}</td>
-      `;
-      dashboardBody.appendChild(tr);
-    }
-
-    // Reset app to initial state
-    function resetToStart() {
+      attendanceForm.reset();
       formSection.style.display = 'none';
       typeSection.style.display = 'block';
-      nameSection.style.display = 'none';
-      scannerSection.style.display = 'none';
-      inputName.value = '';
-      attendanceTypeSelect.value = '';
-      qrcodeDiv.innerHTML = '';
-      scannedName = '';
-      selectedType = '';
-      attendanceForm.reset();
+    });
 
-      if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(console.error);
-      }
-    }
-
-    // Manual attendance toggle button
+    // Manual attendance toggle
     toggleManualBtn.addEventListener('click', () => {
       if (manualSection.style.display === 'none') {
         manualSection.style.display = 'block';
@@ -443,41 +393,37 @@
       }
     });
 
-    // Manual attendance form submission
+    // Manual form submit
     manualForm.addEventListener('submit', e => {
       e.preventDefault();
 
-      const name = document.getElementById('manualName').value.trim();
-      const type = document.getElementById('manualType').value;
-      const course = document.getElementById('manualCourse').value.trim();
-      const year = document.getElementById('manualYear').value;
-      const idNumber = document.getElementById('manualIdNumber').value.trim();
-      const reason = document.getElementById('manualReason').value;
-      const subject = document.getElementById('manualSubject').value.trim();
-      const roomAssessment = document.getElementById('manualRoomAssessment').value.trim();
+      const entry = {
+        name: document.getElementById('manualName').value.trim(),
+        type: document.getElementById('manualType').value,
+        course: document.getElementById('manualCourse').value.trim(),
+        year: document.getElementById('manualYear').value,
+        idNumber: document.getElementById('manualIdNumber').value.trim(),
+        reason: document.getElementById('manualReason').value,
+        subject: document.getElementById('manualSubject').value.trim(),
+        roomAssessment: document.getElementById('manualRoomAssessment').value.trim(),
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString()
+      };
 
-      if (!name || !type || !reason) {
-        alert('Please fill all required fields in manual attendance.');
-        return;
-      }
-
-      addAttendance({
-        name,
-        type,
-        course,
-        year,
-        idNumber,
-        reason,
-        subject,
-        roomAssessment,
-        date: new Date()
-      });
-
-      alert('Manual attendance submitted!');
+      addToDashboard(entry);
       manualForm.reset();
-      manualSection.style.display = 'none';
-      toggleManualBtn.textContent = 'Show Manual Attendance Form';
     });
+
+    // Add entry to dashboard
+    function addToDashboard(entry) {
+      const tr = document.createElement('tr');
+      for (const key of ['name', 'type', 'course', 'year', 'idNumber', 'reason', 'subject', 'roomAssessment', 'date', 'time']) {
+        const td = document.createElement('td');
+        td.textContent = entry[key] || '';
+        tr.appendChild(td);
+      }
+      dashboardBody.appendChild(tr);
+    }
   </script>
 </body>
 </html>
