@@ -2,143 +2,482 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Attendance QR Generator & Form</title>
+  <title>EQC Attendance QR</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 30px; max-width: 500px; margin: auto; }
-    label, select, input, button { display: block; margin: 10px 0; width: 100%; padding: 8px; font-size: 16px; }
-    #nameSection, #qrSection, #formSection { margin-top: 20px; }
-    #qrCanvas { margin: auto; display: block; }
-    #formSection { display: none; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #8B0000, #FFD700);
+      color: #333;
+      text-align: center;
+      padding: 30px;
+      min-height: 100vh;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 15px;
+      color: #fff;
+      text-shadow: 1px 1px 3px #00000088;
+    }
+    .container {
+      background-color: #ffffffd9;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 15px auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    input, select, button, textarea {
+      padding: 10px;
+      width: 100%;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #cc0000;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #cc0000;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #b30000;
+    }
+    #qrcode {
+      margin: 20px auto;
+      width: 180px;
+      height: 180px;
+    }
+    #reader {
+      margin: 20px auto;
+      width: 300px;
+    }
+    table {
+      margin-top: 30px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    table, th, td {
+      border: 1px solid #cc0000;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    #formSection, #scannerSection, #manualSection {
+      display: none;
+    }
+    #toggleManualBtn {
+      margin-top: 15px;
+      background-color: #ffd700;
+      color: #8b0000;
+      font-weight: 700;
+      border: 2px solid #8b0000;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    #toggleManualBtn:hover {
+      background-color: #e6c200;
+    }
   </style>
 </head>
 <body>
 
-  <h2>Attendance QR Generator</h2>
-
-  <label for="attendanceType">Select Attendance Type:</label>
-  <select id="attendanceType" onchange="onTypeChange()">
-    <option value="">-- Select --</option>
-    <option value="Student Attendance">Student Attendance</option>
-    <option value="Event Attendance">Event Attendance</option>
-  </select>
-
-  <div id="nameSection" style="display:none;">
-    <label for="nameInput">Insert your name:</label>
-    <input type="text" id="nameInput" placeholder="Enter your name" oninput="generateQR()" />
+  <div class="container" id="typeSection">
+    <h1>EQC QR Attendance</h1>
+    <label for="attendanceType">Select Attendance Type:</label>
+    <select id="attendanceType">
+      <option value="" disabled selected>-- Choose --</option>
+      <option value="Student Attendance">Student Attendance</option>
+      <option value="Event Attendance">Event Attendance</option>
+    </select>
+    <button id="nextToNameBtn">Next</button>
   </div>
 
-  <div id="qrSection" style="display:none;">
-    <h3>Generated QR Code</h3>
-    <canvas id="qrCanvas"></canvas>
-    <p>Scan this QR code or click the button below to continue attendance</p>
-    <button onclick="showFormFromQR()">Simulate Scan & Fill Form</button>
+  <div class="container" id="nameSection" style="display:none;">
+    <label for="inputName">Enter Your Name:</label>
+    <input type="text" id="inputName" placeholder="Full Name" />
+    <button id="generateQRBtn">Generate QR Code</button>
+    <div id="qrcode"></div>
   </div>
 
-  <div id="formSection">
-    <h2>Complete Attendance Form</h2>
-    <p><strong>Attendance Type:</strong> <span id="formType"></span></p>
-    <p><strong>Name:</strong> <span id="formName"></span></p>
+  <div class="container" id="scannerSection" style="display:none;">
+    <h3>Scan Your QR Code</h3>
+    <div id="reader"></div>
+  </div>
 
+  <div class="container" id="formSection">
+    <h3>Fill Attendance Details</h3>
     <form id="attendanceForm">
-      <label for="courseInput">Course:</label>
-      <input type="text" id="courseInput" placeholder="Enter your course" required />
-
-      <label for="yearSelect">Year:</label>
-      <select id="yearSelect" required>
-        <option value="">Select Year Level</option>
-        <option value="1st Year">1st Year</option>
-        <option value="2nd Year">2nd Year</option>
-        <option value="3rd Year">3rd Year</option>
-        <option value="4th Year">4th Year</option>
-      </select>
-
-      <label for="idInput">ID Number:</label>
-      <input type="text" id="idInput" placeholder="Enter your ID number" required />
-
+      <div>
+        <label for="displayType">Attendance Type:</label>
+        <input type="text" id="displayType" readonly />
+      </div>
+      <div>
+        <label for="displayName">Name:</label>
+        <input type="text" id="displayName" readonly />
+      </div>
+      <div>
+        <label for="course">Course:</label>
+        <input type="text" id="course" placeholder="Your course" />
+      </div>
+      <div>
+        <label for="year">Year:</label>
+        <select id="year">
+          <option value="" disabled selected>-- Select Year --</option>
+          <option value="1st Year">1st Year</option>
+          <option value="2nd Year">2nd Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="4th Year">4th Year</option>
+        </select>
+      </div>
+      <div>
+        <label for="idNumber">ID Number:</label>
+        <input type="text" id="idNumber" placeholder="Your ID number" />
+      </div>
+      <div>
+        <label for="reason">Reason:</label>
+        <select id="reason" required>
+          <option value="" disabled selected>-- Select Reason --</option>
+          <option value="Attending Class">Attending Class</option>
+          <option value="Submitting Activities">Submitting Activities</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" placeholder="Subject (if applicable)" />
+      </div>
+      <div>
+        <label for="roomAssessment">Room Assessment (optional):</label>
+        <textarea id="roomAssessment" rows="2" placeholder="Any notes"></textarea>
+      </div>
       <button type="submit">Submit Attendance</button>
     </form>
   </div>
 
+  <div class="container">
+    <button id="toggleManualBtn">Show Manual Attendance Form</button>
+    <div id="manualSection" style="display:none; margin-top:15px;">
+      <h3>Manual Attendance Entry</h3>
+      <form id="manualForm">
+        <div>
+          <label for="manualName">Name:</label>
+          <input type="text" id="manualName" placeholder="Full Name" required />
+        </div>
+        <div>
+          <label for="manualType">Attendance Type:</label>
+          <select id="manualType" required>
+            <option value="" disabled selected>-- Choose --</option>
+            <option value="Student Attendance">Student Attendance</option>
+            <option value="Event Attendance">Event Attendance</option>
+          </select>
+        </div>
+        <div>
+          <label for="manualCourse">Course:</label>
+          <input type="text" id="manualCourse" placeholder="Your course" />
+        </div>
+        <div>
+          <label for="manualYear">Year:</label>
+          <select id="manualYear">
+            <option value="" disabled selected>-- Select Year --</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+          </select>
+        </div>
+        <div>
+          <label for="manualIdNumber">ID Number:</label>
+          <input type="text" id="manualIdNumber" placeholder="Your ID number" />
+        </div>
+        <div>
+          <label for="manualReason">Reason:</label>
+          <select id="manualReason" required>
+            <option value="" disabled selected>-- Select Reason --</option>
+            <option value="Attending Class">Attending Class</option>
+            <option value="Submitting Activities">Submitting Activities</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="manualSubject">Subject:</label>
+          <input type="text" id="manualSubject" placeholder="Subject (if applicable)" />
+        </div>
+        <div>
+          <label for="manualRoomAssessment">Room Assessment (optional):</label>
+          <textarea id="manualRoomAssessment" rows="2" placeholder="Any notes"></textarea>
+        </div>
+        <button type="submit">Submit Manual Attendance</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Local Attendance Dashboard</h2>
+    <table id="dashboard">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Course</th>
+          <th>Year</th>
+          <th>ID No.</th>
+          <th>Reason</th>
+          <th>Subject</th>
+          <th>Room Assessment</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="dashboardBody"></tbody>
+    </table>
+  </div>
+
   <script>
-    function onTypeChange() {
-      const type = document.getElementById('attendanceType').value;
-      document.getElementById('nameSection').style.display = type ? 'block' : 'none';
-      document.getElementById('qrSection').style.display = 'none';
-      document.getElementById('formSection').style.display = 'none';
-      document.getElementById('nameInput').value = '';
-    }
+    // Elements
+    const typeSection = document.getElementById('typeSection');
+    const nameSection = document.getElementById('nameSection');
+    const scannerSection = document.getElementById('scannerSection');
+    const formSection = document.getElementById('formSection');
+    const manualSection = document.getElementById('manualSection');
+    const toggleManualBtn = document.getElementById('toggleManualBtn');
 
-    function generateQR() {
-      const name = document.getElementById('nameInput').value.trim();
-      const type = document.getElementById('attendanceType').value;
-      const canvas = document.getElementById('qrCanvas');
+    const attendanceTypeSelect = document.getElementById('attendanceType');
+    const nextToNameBtn = document.getElementById('nextToNameBtn');
 
-      if(name && type) {
-        // For simulation, encode the attendance info in JSON string
-        const qrData = JSON.stringify({ type, name });
-        QRCode.toCanvas(canvas, qrData, { width: 200 }, (error) => {
-          if(error) console.error(error);
-          else document.getElementById('qrSection').style.display = 'block';
-          document.getElementById('formSection').style.display = 'none';
-        });
-      } else {
-        document.getElementById('qrSection').style.display = 'none';
-        document.getElementById('formSection').style.display = 'none';
+    const inputName = document.getElementById('inputName');
+    const generateQRBtn = document.getElementById('generateQRBtn');
+    const qrcodeDiv = document.getElementById('qrcode');
+
+    const readerDiv = document.getElementById('reader');
+
+    const attendanceForm = document.getElementById('attendanceForm');
+    const displayType = document.getElementById('displayType');
+    const displayName = document.getElementById('displayName');
+
+    const dashboardBody = document.getElementById('dashboardBody');
+
+    const manualForm = document.getElementById('manualForm');
+
+    let html5QrcodeScanner = null;
+
+    // State
+    let selectedType = '';
+    let scannedName = '';
+
+    // Step 1: Select attendance type
+    nextToNameBtn.addEventListener('click', () => {
+      const val = attendanceTypeSelect.value;
+      if (!val) {
+        alert('Please select attendance type.');
+        return;
       }
+      selectedType = val;
+      typeSection.style.display = 'none';
+      nameSection.style.display = 'block';
+    });
+
+    // Step 2: Enter name and generate QR code
+    generateQRBtn.addEventListener('click', () => {
+      const name = inputName.value.trim();
+      if (!name) {
+        alert('Please enter your name.');
+        return;
+      }
+      scannedName = name;
+
+      // Clear previous QR code if any
+      qrcodeDiv.innerHTML = '';
+
+      // Generate QR code with format: JSON string with name and type
+      const qrData = JSON.stringify({name: scannedName, type: selectedType});
+      QRCode.toCanvas(qrcodeDiv, qrData, {width: 180}, function (error) {
+        if (error) {
+          alert('Failed to generate QR code.');
+          console.error(error);
+          return;
+        }
+        // Show scanner after QR code generated
+        nameSection.style.display = 'none';
+        scannerSection.style.display = 'block';
+
+        startScanner();
+      });
+    });
+
+    // Step 3: Start QR code scanner
+    function startScanner() {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(console.error);
+      }
+
+      html5QrcodeScanner = new Html5Qrcode("reader");
+
+      const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        // Stop scanning once decoded
+        html5QrcodeScanner.stop().then(() => {
+          scannerSection.style.display = 'none';
+          showAttendanceForm(decodedText);
+        }).catch(err => {
+          console.error('Failed to stop scanner:', err);
+        });
+      };
+
+      const config = {fps: 10, qrbox: 250};
+
+      html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+        .catch(err => {
+          alert('Unable to start scanning: ' + err);
+          console.error(err);
+        });
     }
 
-    // This simulates scanning the QR code and extracting the info
-    function showFormFromQR() {
-      const canvas = document.getElementById('qrCanvas');
-      // We have the data encoded in qrData from generateQR - but we can't read the canvas content directly
-      // So let's just take the current inputs for demo purposes
-      const type = document.getElementById('attendanceType').value;
-      const name = document.getElementById('nameInput').value.trim();
-
-      if(!type || !name) {
-        alert('Please select attendance type and enter your name first.');
+    // Step 4: Show attendance form prefilled
+    function showAttendanceForm(decodedText) {
+      let data;
+      try {
+        data = JSON.parse(decodedText);
+      } catch (e) {
+        alert('Invalid QR code scanned.');
+        console.error(e);
         return;
       }
 
-      document.getElementById('formType').textContent = type;
-      document.getElementById('formName').textContent = name;
+      if (!data.name || !data.type) {
+        alert('QR code missing required data.');
+        return;
+      }
 
-      document.getElementById('formSection').style.display = 'block';
-      window.scrollTo(0, document.body.scrollHeight);
+      displayName.value = data.name;
+      displayType.value = data.type;
+
+      formSection.style.display = 'block';
     }
 
-    // Handle form submit
-    document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+    // Step 5: Submit attendance form
+    attendanceForm.addEventListener('submit', e => {
       e.preventDefault();
 
-      const type = document.getElementById('formType').textContent;
-      const name = document.getElementById('formName').textContent;
-      const course = document.getElementById('courseInput').value.trim();
-      const year = document.getElementById('yearSelect').value;
-      const idNumber = document.getElementById('idInput').value.trim();
+      const course = document.getElementById('course').value.trim();
+      const year = document.getElementById('year').value;
+      const idNumber = document.getElementById('idNumber').value.trim();
+      const reason = document.getElementById('reason').value;
+      const subject = document.getElementById('subject').value.trim();
+      const roomAssessment = document.getElementById('roomAssessment').value.trim();
 
-      if(!course || !year || !idNumber) {
-        alert('Please fill all the fields.');
+      if (!course || !year || !idNumber || !reason) {
+        alert('Please fill all required fields.');
         return;
       }
 
-      alert(`✅ Attendance Submitted!
-Attendance Type: ${type}
-Name: ${name}
-Course: ${course}
-Year: ${year}
-ID Number: ${idNumber}`);
+      addAttendance({
+        name: displayName.value,
+        type: displayType.value,
+        course,
+        year,
+        idNumber,
+        reason,
+        subject,
+        roomAssessment,
+        date: new Date()
+      });
 
-      // Reset everything
-      document.getElementById('attendanceForm').reset();
-      document.getElementById('formSection').style.display = 'none';
-      document.getElementById('qrSection').style.display = 'none';
-      document.getElementById('nameInput').value = '';
-      document.getElementById('attendanceType').value = '';
-      document.getElementById('nameSection').style.display = 'none';
+      alert('Attendance submitted!');
+
+      resetToStart();
+    });
+
+    // Add attendance entry to dashboard table
+    function addAttendance(entry) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${entry.name}</td>
+        <td>${entry.type}</td>
+        <td>${entry.course}</td>
+        <td>${entry.year}</td>
+        <td>${entry.idNumber}</td>
+        <td>${entry.reason}</td>
+        <td>${entry.subject}</td>
+        <td>${entry.roomAssessment}</td>
+        <td>${entry.date.toLocaleDateString()}</td>
+        <td>${entry.date.toLocaleTimeString()}</td>
+      `;
+      dashboardBody.appendChild(tr);
+    }
+
+    // Reset app to initial state
+    function resetToStart() {
+      formSection.style.display = 'none';
+      typeSection.style.display = 'block';
+      nameSection.style.display = 'none';
+      scannerSection.style.display = 'none';
+      inputName.value = '';
+      attendanceTypeSelect.value = '';
+      qrcodeDiv.innerHTML = '';
+      scannedName = '';
+      selectedType = '';
+      attendanceForm.reset();
+
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(console.error);
+      }
+    }
+
+    // Manual attendance toggle button
+    toggleManualBtn.addEventListener('click', () => {
+      if (manualSection.style.display === 'none') {
+        manualSection.style.display = 'block';
+        toggleManualBtn.textContent = 'Hide Manual Attendance Form';
+      } else {
+        manualSection.style.display = 'none';
+        toggleManualBtn.textContent = 'Show Manual Attendance Form';
+      }
+    });
+
+    // Manual attendance form submission
+    manualForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const name = document.getElementById('manualName').value.trim();
+      const type = document.getElementById('manualType').value;
+      const course = document.getElementById('manualCourse').value.trim();
+      const year = document.getElementById('manualYear').value;
+      const idNumber = document.getElementById('manualIdNumber').value.trim();
+      const reason = document.getElementById('manualReason').value;
+      const subject = document.getElementById('manualSubject').value.trim();
+      const roomAssessment = document.getElementById('manualRoomAssessment').value.trim();
+
+      if (!name || !type || !reason) {
+        alert('Please fill all required fields in manual attendance.');
+        return;
+      }
+
+      addAttendance({
+        name,
+        type,
+        course,
+        year,
+        idNumber,
+        reason,
+        subject,
+        roomAssessment,
+        date: new Date()
+      });
+
+      alert('Manual attendance submitted!');
+      manualForm.reset();
+      manualSection.style.display = 'none';
+      toggleManualBtn.textContent = 'Show Manual Attendance Form';
     });
   </script>
-
 </body>
 </html>
