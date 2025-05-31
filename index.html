@@ -332,22 +332,23 @@
 
   function startScanner() {
     if (html5QrcodeScanner) {
-      html5QrcodeScanner.start({ facingMode: "environment" }, {}, onScanSuccess);
-      return;
+      html5QrcodeScanner.start({ facingMode: "environment" }, {}, onScanSuccess)
+        .catch(err => console.error('Failed to start scanner:', err));
+    } else {
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+      ).catch(err => console.error('Failed to start scanner:', err));
     }
-    html5QrcodeScanner = new Html5Qrcode("reader");
-    html5QrcodeScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScanSuccess
-    ).catch(err => console.error('Failed to start scanner:', err));
   }
 
   function stopScanner() {
     if (html5QrcodeScanner) {
       html5QrcodeScanner.stop().then(() => {
         html5QrcodeScanner.clear();
-      });
+      }).catch(err => console.error('Failed to stop scanner:', err));
     }
   }
 
@@ -428,8 +429,8 @@
         alert('Please fill all required event fields.');
         return;
       }
-      record.eventType = eventType.value.trim
-            record.eventTitle = eventTitle.value.trim();
+      record.eventType = eventType.value.trim();
+      record.eventTitle = eventTitle.value.trim();
       record.eventDate = eventDate.value;
       record.facilitator = facilitator.value.trim();
     }
@@ -444,7 +445,7 @@
   };
 
   backFromFormBtn.onclick = () => {
-    formSection.style.display = 'none';
+    formSection.style.display =     'none';
     typeSection.style.display = 'block';
   };
 
@@ -527,22 +528,23 @@
 
   function startSignOutScanner() {
     if (html5QrcodeSignOutScanner) {
-      html5QrcodeSignOutScanner.start({ facingMode: "environment" }, {}, onSignOutScanSuccess);
-      return;
+      html5QrcodeSignOutScanner.start({ facingMode: "environment" }, {}, onSignOutScanSuccess)
+        .catch(err => console.error('Failed to start sign-out scanner:', err));
+    } else {
+      html5QrcodeSignOutScanner = new Html5Qrcode("signoutReader");
+      html5QrcodeSignOutScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onSignOutScanSuccess
+      ).catch(err => console.error('Failed to start sign-out scanner:', err));
     }
-    html5QrcodeSignOutScanner = new Html5Qrcode("signoutReader");
-    html5QrcodeSignOutScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onSignOutScanSuccess
-    ).catch(err => console.error('Failed to start sign-out scanner:', err));
   }
 
   function stopSignOutScanner() {
     if (html5QrcodeSignOutScanner) {
       html5QrcodeSignOutScanner.stop().then(() => {
         html5QrcodeSignOutScanner.clear();
-      });
+      }).catch(err => console.error('Failed to stop sign-out scanner:', err));
     }
   }
 
