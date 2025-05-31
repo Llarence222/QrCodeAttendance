@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>EQC Attendance QR</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -73,10 +73,42 @@
       padding: 8px;
       text-align: left;
     }
-    #formSection, #scannerSection, #signoutScannerSection, #signoutFormSection {
+    #formSection, #scannerSection, #manualSection, #signoutScannerSection, #signoutFormSection {
       display: none;
     }
-    .backBtn {
+    #toggleManualBtn {
+      margin-top: 15px;
+      background-color: #ffd700;
+      color: #8b0000;
+      font-weight: 700;
+      border: 2px solid #8b0000;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    #toggleManualBtn:hover {
+      background-color: #e6c200;
+    }
+    #dashboardContainer, #signoutDashboardContainer {
+      overflow-x: auto;
+      max-width: 980px;
+      margin: 15px auto;
+    }
+    #signOutToggleBtn {
+      margin-top: 15px;
+      background-color: #006400;
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      width: 300px;
+    }
+    #signOutToggleBtn:hover {
+      background-color: #004d00;
+    }
+    #backBtn {
       background-color: #555;
       margin-top: 10px;
       padding: 10px;
@@ -86,12 +118,13 @@
       border: none;
       width: 100%;
     }
-    .backBtn:hover {
+    #backBtn:hover {
       background-color: #333;
     }
   </style>
 </head>
 <body>
+
 <div class="container" id="typeSection">
   <h1>EQC QR Attendance</h1>
   <label for="attendanceType">Select Attendance Type:</label>
@@ -101,20 +134,24 @@
     <option value="Event Attendance">Event Attendance</option>
   </select>
   <button id="nextToNameBtn">Next</button>
+  <br />
   <button id="signOutToggleBtn">Go to Sign-Out QR Attendance</button>
 </div>
+
 <div class="container" id="nameSection" style="display:none;">
   <label for="inputName">Enter Your Name:</label>
   <input type="text" id="inputName" placeholder="Full Name" autocomplete="off" />
   <canvas id="qrcode" width="180" height="180"></canvas>
   <button id="goToScannerBtn" disabled>Proceed to Scan</button>
-  <button id="backToTypeBtn" type="button" class="backBtn">Back</button>
+  <button id="backToTypeBtn" type="button" id="backBtn">Back</button>
 </div>
+
 <div class="container" id="scannerSection" style="display:none;">
   <h3>Scan Your QR Code</h3>
   <div id="reader"></div>
   <button id="cancelScanBtn" type="button" class="backBtn">Cancel</button>
 </div>
+
 <div class="container" id="formSection">
   <h3>Fill Attendance Details</h3>
   <form id="attendanceForm">
@@ -126,6 +163,7 @@
       <label for="displayName">Name:</label>
       <input type="text" id="displayName" readonly />
     </div>
+
     <div id="studentFields">
       <label for="course">Course:</label>
       <input type="text" id="course" placeholder="Your course" />
@@ -151,6 +189,7 @@
       <label for="roomAssessment">Room Assessment (optional):</label>
       <textarea id="roomAssessment" rows="2" placeholder="Any notes"></textarea>
     </div>
+
     <div id="eventFields" style="display:none;">
       <label for="eventType">Event Type:</label>
       <input type="text" id="eventType" placeholder="e.g. Seminar, Workshop" />
@@ -161,16 +200,19 @@
       <label for="facilitator">Facilitator:</label>
       <input type="text" id="facilitator" placeholder="Facilitator's Name" />
     </div>
+
     <button type="submit">Submit Attendance</button>
     <button type="button" id="backFromFormBtn" class="backBtn">Back</button>
   </form>
 </div>
+
 <!-- Sign-Out Scanner Section -->
 <div class="container" id="signoutScannerSection" style="display:none;">
   <h3>Scan Your QR Code to Sign Out</h3>
   <div id="signoutReader"></div>
   <button id="cancelSignOutScanBtn" type="button" class="backBtn">Cancel</button>
 </div>
+
 <!-- Sign-Out Form Section -->
 <div class="container" id="signoutFormSection" style="display:none;">
   <h3>Sign Out Details</h3>
@@ -181,460 +223,517 @@
     <input type="text" id="signoutDate" readonly />
     <label for="signoutTime">Time:</label>
     <input type="text" id="signoutTime" readonly />
-    <button type="submit">Submit Sign-Out</button>
+    <label for="signoutReason">Reason for Signing Out:</label>
+    <select id="signoutReason" required>
+      <option value="" disabled selected>-- Select Reason --</option>
+      <option value="Finished Class">Finished Class</option>
+      <option value="Emergency">Emergency</option>
+      <option value="Personal Reason">Personal Reason</option>
+      <option value="Other">Other</option>
+    </select>
+    <button type="submit">Submit Sign Out</button>
     <button type="button" id="backFromSignOutFormBtn" class="backBtn">Back</button>
   </form>
 </div>
-<!-- Attendance Dashboard -->
-<div class="container" id="dashboardContainer" style="display:none;">
-  <h2>Attendance Records</h2>
-  <button id="clearRecordsBtn" type="button" class="backBtn">Clear All Records</button>
-  <table>
+
+<div id="dashboardContainer" class="container">
+  <h2>Attendance Dashboard</h2>
+  <table id="dashboardTable">
     <thead>
       <tr>
         <th>Name</th>
-        <th>Date</th>
-        <th>Time</th>
         <th>Type</th>
-        <th>Course</th>
-        <th>Year</th>
-        <th>ID Number</th>
-        <th>Reason</th>
-        <th>Subject</th>
-        <th>Room Assessment</th>
-        <th>Event Type</th>
-        <th>Event Title</th>
-        <th>Event Date</th>
-        <th>Facilitator</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Details</th>
       </tr>
     </thead>
-    <tbody id="attendanceTableBody"></tbody>
+    <tbody></tbody>
   </table>
-  <button id="backToHomeFromDashboard" class="backBtn">Back to Home</button>
 </div>
-<!-- Sign-Out Dashboard -->
-<div class="container" id="signoutDashboardContainer" style="display:none;">
-  <h2>Sign-Out Records</h2>
-  <button id="clearSignOutBtn" type="button" class="backBtn">Clear All Sign-Out Records</button>
-  <table>
+
+<div id="signoutDashboardContainer" class="container" style="display:none;">
+  <h2>Sign-Out Dashboard</h2>
+  <table id="signoutDashboardTable">
     <thead>
       <tr>
         <th>Name</th>
         <th>Date</th>
         <th>Time</th>
+        <th>Reason</th>
       </tr>
     </thead>
-    <tbody id="signoutTableBody"></tbody>
+    <tbody></tbody>
   </table>
-  <button id="backToHomeFromSignOutDashboard" class="backBtn">Back to Home</button>
 </div>
 
 <script>
-  const attendanceType = document.getElementById('attendanceType');
-  const nextToNameBtn = document.getElementById('nextToNameBtn');
-  const typeSection = document.getElementById('typeSection');
-  const nameSection = document.getElementById('nameSection');
-  const inputName = document.getElementById('inputName');
-  const qrcode = document.getElementById('qrcode');
-  const goToScannerBtn = document.getElementById('goToScannerBtn');
-  const backToTypeBtn = document.getElementById('backToTypeBtn');
-  const scannerSection = document.getElementById('scannerSection');
-  const reader = document.getElementById('reader');
-  const cancelScanBtn = document.getElementById('cancelScanBtn');
-  const formSection = document.getElementById('formSection');
-  const attendanceForm = document.getElementById('attendanceForm');
-  const displayType = document.getElementById('displayType');
-  const displayName = document.getElementById('displayName');
-  const studentFields = document.getElementById('studentFields');
-  const eventFields = document.getElementById('eventFields');
-  const course = document.getElementById('course');
-  const year = document.getElementById('year');
-  const idNumber = document.getElementById('idNumber');
-  const reason = document.getElementById('reason');
-  const subject = document.getElementById('subject');
-  const roomAssessment = document.getElementById('roomAssessment');
-  const eventType = document.getElementById('eventType');
-  const eventTitle = document.getElementById('eventTitle');
-  const eventDate = document.getElementById('eventDate');
-  const facilitator = document.getElementById('facilitator');
-  const backFromFormBtn = document.getElementById('backFromFormBtn');
-  const dashboardContainer = document.getElementById('dashboardContainer');
-  const attendanceTableBody = document.getElementById('attendanceTableBody');
-  const clearRecordsBtn = document.getElementById('clearRecordsBtn');
-  const backToHomeFromDashboard = document.getElementById('backToHomeFromDashboard');
-  const signOutToggleBtn = document.getElementById('signOutToggleBtn');
+  let attendanceTypeSelect = document.getElementById('attendanceType');
+  let nextToNameBtn = document.getElementById('nextToNameBtn');
+  let typeSection = document.getElementById('typeSection');
+  let nameSection = document.getElementById('nameSection');
+  let inputName = document.getElementById('inputName');
+  let qrcodeCanvas = document.getElementById('qrcode');
+  let goToScannerBtn = document.getElementById('goToScannerBtn');
+  let backToTypeBtn = document.getElementById('backToTypeBtn');
 
-  // Sign-out variables
-  const signoutScannerSection = document.getElementById('signoutScannerSection');
-  const signoutFormSection = document.getElementById('signoutFormSection');
-  const signoutReader = document.getElementById('signoutReader');
-  const cancelSignOutScanBtn = document.getElementById('cancelSignOutScanBtn');
-  const signoutForm = document.getElementById('signoutForm');
-  const signoutName = document.getElementById('signoutName');
-  const signoutDate = document.getElementById('signoutDate');
-  const signoutTime = document.getElementById('signoutTime');
-  const backFromSignOutFormBtn = document.getElementById('backFromSignOutFormBtn');
-  const signoutDashboardContainer = document.getElementById('signoutDashboardContainer');
-  const signoutTableBody = document.getElementById('signoutTableBody');
-  const clearSignOutBtn = document.getElementById('clearSignOutBtn');
-  const backToHomeFromSignOutDashboard = document.getElementById('backToHomeFromSignOutDashboard');
+  let scannerSection = document.getElementById('scannerSection');
+  let readerDiv = document.getElementById('reader');
+  let cancelScanBtn = document.getElementById('cancelScanBtn');
 
-  // Variables for html5-qrcode scanners
-  let html5QrcodeScanner;
-  let html5QrcodeSignOutScanner;
+  let formSection = document.getElementById('formSection');
+  let attendanceForm = document.getElementById('attendanceForm');
+  let displayTypeInput = document.getElementById('displayType');
+  let displayNameInput = document.getElementById('displayName');
 
-  // Step 1: Choose attendance type and proceed
-  nextToNameBtn.onclick = () => {
-    if (!attendanceType.value) {
+  // Student attendance fields
+  let studentFields = document.getElementById('studentFields');
+  let courseInput = document.getElementById('course');
+  let yearSelect = document.getElementById('year');
+  let idNumberInput = document.getElementById('idNumber');
+  let reasonSelect = document.getElementById('reason');
+  let subjectInput = document.getElementById('subject');
+  let roomAssessmentInput = document.getElementById('roomAssessment');
+
+  // Event attendance fields
+  let eventFields = document.getElementById('eventFields');
+  let eventTypeInput = document.getElementById('eventType');
+  let eventTitleInput = document.getElementById('eventTitle');
+  let eventDateInput = document.getElementById('eventDate');
+  let facilitatorInput = document.getElementById('facilitator');
+
+  let backFromFormBtn = document.getElementById('backFromFormBtn');
+
+  // Sign-out related
+  let signOutToggleBtn = document.getElementById('signOutToggleBtn');
+  let signoutScannerSection = document.getElementById('signoutScannerSection');
+  let signoutReaderDiv = document.getElementById('signoutReader');
+  let cancelSignOutScanBtn = document.getElementById('cancelSignOutScanBtn');
+  let signoutFormSection = document.getElementById('signoutFormSection');
+  let signoutForm = document.getElementById('signoutForm');
+  let signoutNameInput = document.getElementById('signoutName');
+  let signoutDateInput = document.getElementById('signoutDate');
+  let signoutTimeInput = document.getElementById('signoutTime');
+  let signoutReasonSelect = document.getElementById('signoutReason');
+  let backFromSignOutFormBtn = document.getElementById('backFromSignOutFormBtn');
+
+  // Dashboards
+  let dashboardContainer = document.getElementById('dashboardContainer');
+  let dashboardTableBody = document.querySelector('#dashboardTable tbody');
+
+  let signoutDashboardContainer = document.getElementById('signoutDashboardContainer');
+  let signoutDashboardTableBody = document.querySelector('#signoutDashboardTable tbody');
+
+  let html5QrCodeScanner;
+  let signOutQrCodeScanner;
+
+  // ====== Helpers ======
+
+  function formatDate(date) {
+    return date.toLocaleDateString();
+  }
+  function formatTime(date) {
+    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+  }
+
+  function resetNameSection() {
+    inputName.value = '';
+    goToScannerBtn.disabled = true;
+    QRCode.toCanvas(qrcodeCanvas, '', () => {});
+  }
+
+  function resetFormFields() {
+    courseInput.value = '';
+    yearSelect.selectedIndex = 0;
+    idNumberInput.value = '';
+    reasonSelect.selectedIndex = 0;
+    subjectInput.value = '';
+    roomAssessmentInput.value = '';
+
+    eventTypeInput.value = '';
+    eventTitleInput.value = '';
+    eventDateInput.value = '';
+    facilitatorInput.value = '';
+
+    signoutReasonSelect.selectedIndex = 0;
+  }
+
+  // ====== Generate QR code for name + attendanceType ======
+
+  inputName.addEventListener('input', () => {
+    let name = inputName.value.trim();
+    if (name.length > 0 && attendanceTypeSelect.value) {
+      goToScannerBtn.disabled = false;
+      let qrData = JSON.stringify({
+        name: name,
+        attendanceType: attendanceTypeSelect.value
+      });
+      QRCode.toCanvas(qrcodeCanvas, qrData, {width: 180}, (error) => {
+        if (error) console.error(error);
+      });
+    } else {
+      goToScannerBtn.disabled = true;
+      QRCode.toCanvas(qrcodeCanvas, '', () => {});
+    }
+  });
+
+  // When attendance type changes, reset and disable button if needed
+  attendanceTypeSelect.addEventListener('change', () => {
+    resetNameSection();
+  });
+
+  // ====== Navigation: type -> name section ======
+
+  nextToNameBtn.addEventListener('click', () => {
+    if (!attendanceTypeSelect.value) {
       alert('Please select an attendance type.');
       return;
     }
     typeSection.style.display = 'none';
     nameSection.style.display = 'block';
-    generateQRCode(inputName.value);
-  };
+    inputName.focus();
+  });
 
-  // Back to type selection
-  backToTypeBtn.onclick = () => {
+  backToTypeBtn.addEventListener('click', () => {
     nameSection.style.display = 'none';
     typeSection.style.display = 'block';
-  };
+    resetNameSection();
+  });
 
-  // Enable Proceed to Scan button when name is entered
-  inputName.oninput = () => {
-    goToScannerBtn.disabled = !inputName.value.trim();
-    generateQRCode(inputName.value.trim());
-  };
+  // ====== Navigation: name -> scanner section ======
 
-  // Generate QR code for the input name
-  function generateQRCode(name) {
-    if (!name) {
-      qrcode.innerHTML = '';
-      return;
-    }
-    QRCode.toCanvas(qrcode, name, { width: 180, color: { dark: '#cc0000' } }, function (error) {
-      if (error) console.error(error);
+  goToScannerBtn.addEventListener('click', () => {
+    nameSection.style.display = 'none';
+    scannerSection.style.display = 'block';
+
+    startQrScanner();
+  });
+
+  cancelScanBtn.addEventListener('click', () => {
+    stopQrScanner();
+    scannerSection.style.display = 'none';
+    nameSection.style.display = 'block';
+  });
+
+  // ====== QR Code Scanner ======
+
+  function startQrScanner() {
+    if (html5QrCodeScanner) return; // Already started
+
+    html5QrCodeScanner = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: 250 };
+
+    html5QrCodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      qrCodeMessage => {
+        stopQrScanner();
+        scannerSection.style.display = 'none';
+        openAttendanceForm(qrCodeMessage);
+      },
+      errorMessage => {
+        // console.log("QR scan error:", errorMessage);
+      }
+    ).catch(err => {
+      alert("Unable to start camera for scanning: " + err);
+      scannerSection.style.display = 'none';
+      nameSection.style.display = 'block';
     });
   }
 
-  // Step 2: Show scanner
-  goToScannerBtn.onclick = () => {
-    nameSection.style.display = 'none';
-    scannerSection.style.display = 'block';
-    startScanner();
-  };
-
-  cancelScanBtn.onclick = () => {
-    stopScanner();
-    scannerSection.style.display = 'none';
-    nameSection.style.display = 'block';
-  };
-
-  function startScanner() {
-    if (html5QrcodeScanner) {
-      html5QrcodeScanner.start({ facingMode: "environment" }, {}, onScanSuccess)
-        .catch(err => console.error('Failed to start scanner:', err));
-    } else {
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onScanSuccess
-      ).catch(err => console.error('Failed to start scanner:', err));
+  function stopQrScanner() {
+    if (html5QrCodeScanner) {
+      html5QrCodeScanner.stop().then(() => {
+        html5QrCodeScanner.clear();
+        html5QrCodeScanner = null;
+      }).catch(e => {
+        console.warn('Failed to stop scanner:', e);
+      });
     }
   }
 
-  function stopScanner() {
-    if (html5QrcodeScanner) {
-      html5QrcodeScanner.stop().then(() => {
-        html5QrcodeScanner.clear();
-      }).catch(err => console.error('Failed to stop scanner:', err));
+  // ====== Open Attendance Form with data from QR ======
+
+  function openAttendanceForm(qrMessage) {
+    let data;
+    try {
+      data = JSON.parse(qrMessage);
+    } catch(e) {
+      alert("Invalid QR code scanned.");
+      typeSection.style.display = 'block';
+      return;
     }
-  }
+    displayTypeInput.value = data.attendanceType || '';
+    displayNameInput.value = data.name || '';
 
-  function onScanSuccess(decodedText, decodedResult) {
-    stopScanner();
-    scannerSection.style.display = 'none';
-    openAttendanceForm(decodedText);
-  }
-
-  function openAttendanceForm(decodedText) {
-    formSection.style.display = 'block';
-    displayName.value = decodedText;
-    displayType.value = attendanceType.value;
-
-    // Show/hide student vs event fields based on attendance type
-    if (attendanceType.value === 'Student Attendance') {
+    // Show appropriate fields
+    if (data.attendanceType === "Student Attendance") {
       studentFields.style.display = 'block';
       eventFields.style.display = 'none';
-    } else if (attendanceType.value === 'Event Attendance') {
+    } else if (data.attendanceType === "Event Attendance") {
       studentFields.style.display = 'none';
       eventFields.style.display = 'block';
-    }
-
-    // Clear previous inputs
-    course.value = '';
-    year.value = '';
-    idNumber.value = '';
-    reason.value = '';
-    subject.value = '';
-    roomAssessment.value = '';
-
-    eventType.value = '';
-    eventTitle.value = '';
-    eventDate.value = '';
-    facilitator.value = '';
-  }
-
-  // Submit attendance form
-  attendanceForm.onsubmit = (e) => {
-    e.preventDefault();
-
-    // Basic validation
-    if (!displayName.value.trim()) {
-      alert('Name is required.');
+    } else {
+      alert("Unknown attendance type.");
+      typeSection.style.display = 'block';
       return;
     }
 
-    let record = {
-      name: displayName.value,
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString(),
-      type: displayType.value,
-      course: '',
-      year: '',
-      idNumber: '',
-      reason: '',
-      subject: '',
-      roomAssessment: '',
-      eventType: '',
-      eventTitle: '',
-      eventDate: '',
-      facilitator: ''
-    };
+    resetFormFields();
+    formSection.style.display = 'block';
+  }
 
-    if (displayType.value === 'Student Attendance') {
-      if (!course.value.trim() || !year.value || !idNumber.value.trim() || !reason.value) {
-        alert('Please fill all required student fields.');
+  // ====== Submit Attendance Form ======
+
+  attendanceForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    let type = displayTypeInput.value.trim();
+    let name = displayNameInput.value.trim();
+    let date = formatDate(new Date());
+    let time = formatTime(new Date());
+
+    let record = { name, type, date, time, details: {} };
+
+    if (type === "Student Attendance") {
+      if (!courseInput.value.trim() || !yearSelect.value || !idNumberInput.value.trim() || !reasonSelect.value) {
+        alert("Please fill all required student attendance fields.");
         return;
       }
-      record.course = course.value.trim();
-      record.year = year.value;
-      record.idNumber = idNumber.value.trim();
-      record.reason = reason.value;
-      record.subject = subject.value.trim();
-      record.roomAssessment = roomAssessment.value.trim();
-    } else if (displayType.value === 'Event Attendance') {
-      if (!eventType.value.trim() || !eventTitle.value.trim() || !eventDate.value || !facilitator.value.trim()) {
-        alert('Please fill all required event fields.');
+      record.details = {
+        course: courseInput.value.trim(),
+        year: yearSelect.value,
+        idNumber: idNumberInput.value.trim(),
+        reason: reasonSelect.value,
+        subject: subjectInput.value.trim(),
+        roomAssessment: roomAssessmentInput.value.trim(),
+      };
+    } else if (type === "Event Attendance") {
+      if (!eventTypeInput.value.trim() || !eventTitleInput.value.trim() || !eventDateInput.value || !facilitatorInput.value.trim()) {
+        alert("Please fill all required event attendance fields.");
         return;
       }
-      record.eventType = eventType.value.trim();
-      record.eventTitle = eventTitle.value.trim();
-      record.eventDate = eventDate.value;
-      record.facilitator = facilitator.value.trim();
+      record.details = {
+        eventType: eventTypeInput.value.trim(),
+        eventTitle: eventTitleInput.value.trim(),
+        eventDate: eventDateInput.value,
+        facilitator: facilitatorInput.value.trim(),
+      };
     }
 
     // Save to localStorage
     let records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+
+    // Optional: Prevent duplicate sign-ins same name and date
+    let duplicate = records.find(r => r.name.toLowerCase() === name.toLowerCase() && r.date === date && r.type === type);
+    if (duplicate) {
+      alert("You have already signed in today for this attendance type.");
+      formSection.style.display = 'none';
+      typeSection.style.display = 'block';
+      return;
+    }
+
     records.push(record);
     localStorage.setItem('attendanceRecords', JSON.stringify(records));
 
-    formSection.style.display = 'none';
-    showAttendanceDashboard();
-  };
+    alert("Attendance recorded. Thank you!");
 
-  backFromFormBtn.onclick = () => {
-    formSection.style.display =     'none';
+    formSection.style.display = 'none';
     typeSection.style.display = 'block';
-  };
+    resetNameSection();
+    resetFormFields();
+    loadDashboardData();
+  });
 
-  function showAttendanceDashboard() {
-    typeSection.style.display = 'none';
-    nameSection.style.display = 'none';
-    scannerSection.style.display = 'none';
+  backFromFormBtn.addEventListener('click', () => {
     formSection.style.display = 'none';
-    signoutScannerSection.style.display = 'none';
-    signoutFormSection.style.display = 'none';
-    signoutDashboardContainer.style.display = 'none';
+    typeSection.style.display = 'block';
+  });
 
-    dashboardContainer.style.display = 'block';
+  // ====== Dashboard Load ======
 
-    populateAttendanceTable();
-  }
-
-  function populateAttendanceTable() {
-    attendanceTableBody.innerHTML = '';
+  function loadDashboardData() {
     let records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
-    if (records.length === 0) {
-      attendanceTableBody.innerHTML = '<tr><td colspan="14" style="text-align:center;">No records found.</td></tr>';
-      return;
-    }
-    records.forEach(rec => {
+    dashboardTableBody.innerHTML = '';
+
+    records.forEach(record => {
+      let tr = document.createElement('tr');
+
+      let detailText = '';
+      if (record.type === 'Student Attendance') {
+        detailText = `Course: ${record.details.course || ''}, Year: ${record.details.year || ''}, ID: ${record.details.idNumber || ''}, Reason: ${record.details.reason || ''}, Subject: ${record.details.subject || ''}`;
+      } else if (record.type === 'Event Attendance') {
+        detailText = `Event: ${record.details.eventType || ''} - ${record.details.eventTitle || ''}, Date: ${record.details.eventDate || ''}, Facilitator: ${record.details.facilitator || ''}`;
+      }
+
+      tr.innerHTML = `
+        <td>${record.name}</td>
+        <td>${record.type}</td>
+        <td>${record.date}</td>
+        <td>${record.time}</td>
+        <td>${detailText}</td>
+      `;
+      dashboardTableBody.appendChild(tr);
+    });
+
+    // Load sign-out dashboard
+    let signoutRecords = JSON.parse(localStorage.getItem('signoutRecords') || '[]');
+    signoutDashboardTableBody.innerHTML = '';
+
+    signoutRecords.forEach(record => {
       let tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${rec.name}</td>
-        <td>${rec.date}</td>
-        <td>${rec.time}</td>
-        <td>${rec.type}</td>
-        <td>${rec.course}</td>
-        <td>${rec.year}</td>
-        <td>${rec.idNumber}</td>
-        <td>${rec.reason}</td>
-        <td>${rec.subject}</td>
-        <td>${rec.roomAssessment}</td>
-        <td>${rec.eventType}</td>
-        <td>${rec.eventTitle}</td>
-        <td>${rec.eventDate}</td>
-        <td>${rec.facilitator}</td>
+        <td>${record.name}</td>
+        <td>${record.date}</td>
+        <td>${record.time}</td>
+        <td>${record.reason}</td>
       `;
-      attendanceTableBody.appendChild(tr);
+      signoutDashboardTableBody.appendChild(tr);
     });
   }
 
-  clearRecordsBtn.onclick = () => {
-    if (confirm('Are you sure you want to clear all attendance records? This cannot be undone.')) {
-      localStorage.removeItem('attendanceRecords');
-      populateAttendanceTable();
-    }
-  };
+  // ====== Sign-Out Toggle ======
 
-  backToHomeFromDashboard.onclick = () => {
-    dashboardContainer.style.display = 'none';
-    typeSection.style.display = 'block';
-  };
-
-  // SIGN-OUT Attendance Logic
-
-  signOutToggleBtn.onclick = () => {
-    typeSection.style.display = 'none';
-    nameSection.style.display = 'none';
-    scannerSection.style.display = 'none';
-    formSection.style.display = 'none';
-    dashboardContainer.style.display = 'none';
-    signoutDashboardContainer.style.display = 'none';
-    signoutFormSection.style.display = 'none';
-
-    signoutScannerSection.style.display = 'block';
-
-    startSignOutScanner();
-  };
-
-  cancelSignOutScanBtn.onclick = () => {
+  signOutToggleBtn.addEventListener('click', () => {
+    // Stop any ongoing scanner first
+    stopQrScanner();
     stopSignOutScanner();
-    signoutScannerSection.style.display = 'none';
-    typeSection.style.display = 'block';
-  };
+
+    if (typeSection.style.display !== 'none') {
+      // Switch to signout scanner mode
+      typeSection.style.display = 'none';
+      nameSection.style.display = 'none';
+      formSection.style.display = 'none';
+      scannerSection.style.display = 'none';
+      dashboardContainer.style.display = 'none';
+
+      signoutScannerSection.style.display = 'block';
+      signoutDashboardContainer.style.display = 'block';
+
+      startSignOutScanner();
+    } else {
+      // Back to sign-in mode
+      signoutScannerSection.style.display = 'none';
+      signoutFormSection.style.display = 'none';
+      signoutDashboardContainer.style.display = 'none';
+
+      typeSection.style.display = 'block';
+      dashboardContainer.style.display = 'block';
+    }
+  });
+
+  // ====== Sign-Out Scanner ======
 
   function startSignOutScanner() {
-    if (html5QrcodeSignOutScanner) {
-      html5QrcodeSignOutScanner.start({ facingMode: "environment" }, {}, onSignOutScanSuccess)
-        .catch(err => console.error('Failed to start sign-out scanner:', err));
-    } else {
-      html5QrcodeSignOutScanner = new Html5Qrcode("signoutReader");
-      html5QrcodeSignOutScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onSignOutScanSuccess
-      ).catch(err => console.error('Failed to start sign-out scanner:', err));
-    }
+    if (signOutQrCodeScanner) return; // Already started
+
+    signOutQrCodeScanner = new Html5Qrcode("signoutReader");
+    const config = { fps: 10, qrbox: 250 };
+
+    signOutQrCodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      qrCodeMessage => {
+        stopSignOutScanner();
+        signoutScannerSection.style.display = 'none';
+        openSignOutForm(qrCodeMessage);
+      },
+      errorMessage => {
+        // console.log("Sign-out scan error:", errorMessage);
+      }
+    ).catch(err => {
+      alert("Unable to start camera for sign-out scanning: " + err);
+      signoutScannerSection.style.display = 'none';
+      typeSection.style.display = 'block';
+      dashboardContainer.style.display = 'block';
+    });
   }
 
   function stopSignOutScanner() {
-    if (html5QrcodeSignOutScanner) {
-      html5QrcodeSignOutScanner.stop().then(() => {
-        html5QrcodeSignOutScanner.clear();
-      }).catch(err => console.error('Failed to stop sign-out scanner:', err));
+    if (signOutQrCodeScanner) {
+      signOutQrCodeScanner.stop().then(() => {
+        signOutQrCodeScanner.clear();
+        signOutQrCodeScanner = null;
+      }).catch(e => {
+        console.warn('Failed to stop sign-out scanner:', e);
+      });
     }
   }
 
-  function onSignOutScanSuccess(decodedText) {
+  cancelSignOutScanBtn.addEventListener('click', () => {
     stopSignOutScanner();
     signoutScannerSection.style.display = 'none';
-    openSignOutForm(decodedText);
-  }
-
-  function openSignOutForm(decodedText) {
-    signoutFormSection.style.display = 'block';
-    signoutName.value = decodedText;
-
-    const now = new Date();
-    signoutDate.value = now.toLocaleDateString();
-    signoutTime.value = now.toLocaleTimeString();
-  }
-
-  // Submit sign-out form (without reason)
-  signoutForm.onsubmit = (e) => {
-    e.preventDefault();
-
-    if (!signoutName.value.trim()) {
-      alert('Name is required.');
-      return;
-    }
-
-    let signoutRecord = {
-      name: signoutName.value,
-      date: signoutDate.value,
-      time: signoutTime.value
-    };
-
-    let signoutRecords = JSON.parse(localStorage.getItem('signoutRecords') || '[]');
-    signoutRecords.push(signoutRecord);
-    localStorage.setItem('signoutRecords', JSON.stringify(signoutRecords));
-
-    signoutFormSection.style.display = 'none';
-    showSignOutDashboard();
-  };
-
-  backFromSignOutFormBtn.onclick = () => {
-    signoutFormSection.style.display = 'none';
-    signOutToggleBtn.click();
-  };
-
-  function showSignOutDashboard() {
-    typeSection.style.display = 'none';
-    nameSection.style.display = 'none';
-    scannerSection.style.display = 'none';
-    formSection.style.display = 'none';
-    dashboardContainer.style.display = 'none';
-
-    signoutScannerSection.style.display = 'none';
-    signoutFormSection.style.display = 'none';
-
-    signoutDashboardContainer.style.display = 'block';
-
-    populateSignOutTable();
-  }
-
-  function populateSignOutTable() {
-    signoutTableBody.innerHTML = '';
-    let records = JSON.parse(localStorage.getItem('signoutRecords') || '[]');
-    if (records.length === 0) {
-      signoutTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No sign-out records found.</td></tr>';
-      return;
-    }
-    records.forEach(rec => {
-      let tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${rec.name}</td>
-        <td>${rec.date}</td>
-        <td>${rec.time}</td>
-      `;
-      signoutTableBody.appendChild(tr);
-    });
-  }
-
-  clearSignOutBtn.onclick = () => {
-    if (confirm('Clear all sign-out records? This action cannot be undone.')) {
-      localStorage.removeItem('signoutRecords');
-      populateSignOutTable();
-    }
-  };
-
-  backToHomeFromSignOutDashboard.onclick = () => {
     signoutDashboardContainer.style.display = 'none';
     typeSection.style.display = 'block';
+    dashboardContainer.style.display = 'block';
+  });
+
+  // ====== Open Sign-Out Form ======
+
+  function openSignOutForm(qrMessage) {
+    let data;
+    try {
+      data = JSON.parse(qrMessage);
+    } catch(e) {
+      alert("Invalid QR code scanned.");
+      signoutScannerSection.style.display = 'block';
+      return;
+    }
+    if (!data.name) {
+      alert("QR code missing name info.");
+      signoutScannerSection.style.display = 'block';
+      return;
+    }
+
+    signoutNameInput.value = data.name;
+    let now = new Date();
+    signoutDateInput.value = formatDate(now);
+    signoutTimeInput.value = formatTime(now);
+
+    resetFormFields();
+    signoutFormSection.style.display = 'block';
+  }
+
+  backFromSignOutFormBtn.addEventListener('click', () => {
+    signoutFormSection.style.display = 'none';
+    signoutScannerSection.style.display = 'block';
+  });
+
+  // ====== Submit Sign-Out Form ======
+
+  signoutForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    let name = signoutNameInput.value.trim();
+    let date = signoutDateInput.value;
+    let time = signoutTimeInput.value;
+    let reason = signoutReasonSelect.value;
+
+    if (!reason) {
+      alert("Please select a reason for signing out.");
+      return;
+    }
+
+    let records = JSON.parse(localStorage.getItem('signoutRecords') || '[]');
+
+    records.push({ name, date, time, reason });
+
+    localStorage.setItem('signoutRecords', JSON.stringify(records));
+
+    alert("Sign-out recorded. Have a nice day!");
+
+    signoutFormSection.style.display = 'none';
+    signoutScannerSection.style.display = 'block';
+
+    loadDashboardData();
+  });
+
+  // ====== Initial Load ======
+
+  window.onload = () => {
+    loadDashboardData();
   };
 </script>
+
 </body>
 </html>
