@@ -115,13 +115,13 @@
 
   <div class="form-section" id="studentDetails" style="display: none;">
     <h3>Student Info</h3>
-    <input type="text" placeholder="Year">
-    <input type="text" placeholder="Course">
-    <input type="text" placeholder="Subject">
-    <input type="text" placeholder="Room">
-    <input type="text" placeholder="Teacher">
-    <input type="text" placeholder="Room Assessment">
-    <button style="background-color:#00cc66;color:white;">Submit Attendance</button>
+    <input type="text" id="year" placeholder="Year">
+    <input type="text" id="course" placeholder="Course">
+    <input type="text" id="subject" placeholder="Subject">
+    <input type="text" id="room" placeholder="Room">
+    <input type="text" id="teacher" placeholder="Teacher">
+    <input type="text" id="roomAssessment" placeholder="Room Assessment">
+    <button style="background-color:#00cc66;color:white;" onclick="submitAttendance()">Submit Attendance</button>
   </div>
 
   <script>
@@ -228,6 +228,30 @@
       mainMenu.style.display = 'block';
       stopScanner();
     });
+
+    function submitAttendance() {
+      const name = studentName.value.trim();
+      const year = document.getElementById('year').value.trim();
+      const course = document.getElementById('course').value.trim();
+      const subject = document.getElementById('subject').value.trim();
+      const room = document.getElementById('room').value.trim();
+      const teacher = document.getElementById('teacher').value.trim();
+      const roomAssessment = document.getElementById('roomAssessment').value.trim();
+      const timestamp = new Date().toLocaleString();
+
+      const attendanceRecord = {
+        name, year, course, subject, room, teacher, roomAssessment, timestamp
+      };
+
+      let records = JSON.parse(localStorage.getItem('studentAttendance')) || [];
+      records.push(attendanceRecord);
+      localStorage.setItem('studentAttendance', JSON.stringify(records));
+
+      alert('✅ Attendance submitted!');
+
+      // Reset view
+      backBtn.click();
+    }
   </script>
 
 </body>
