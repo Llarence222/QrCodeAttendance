@@ -118,6 +118,7 @@
   <div class="form-section" id="dashboard" style="display: none;">
     <h3>Attendance Dashboard</h3>
     <ul id="attendanceList" style="text-align: left; color: #fff;"></ul>
+    <input type="password" id="adminPassword" placeholder="Enter admin password">
     <button onclick="clearAttendance()" style="background-color: #990000; color: white;">Clear All</button>
     <button onclick="goBack()" style="background-color: #333; color: white;">Back</button>
   </div>
@@ -246,9 +247,15 @@
     }
 
     function clearAttendance() {
+      const password = document.getElementById('adminPassword').value;
+      if (password !== 'admin123') {
+        alert("Incorrect admin password.");
+        return;
+      }
       if (confirm("Are you sure you want to clear all records?")) {
         localStorage.removeItem('attendanceRecords');
         loadAttendance();
+        document.getElementById('adminPassword').value = '';
       }
     }
   </script>
