@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>EQC Attendance QR</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -73,40 +73,8 @@
       padding: 8px;
       text-align: left;
     }
-    #formSection, #scannerSection, #manualSection, #signoutScannerSection, #signoutFormSection {
+    #formSection, #scannerSection, #signoutScannerSection, #signoutFormSection {
       display: none;
-    }
-    #toggleManualBtn {
-      margin-top: 15px;
-      background-color: #ffd700;
-      color: #8b0000;
-      font-weight: 700;
-      border: 2px solid #8b0000;
-      border-radius: 8px;
-      padding: 10px;
-      cursor: pointer;
-    }
-    #toggleManualBtn:hover {
-      background-color: #e6c200;
-    }
-    #dashboardContainer, #signoutDashboardContainer {
-      overflow-x: auto;
-      max-width: 980px;
-      margin: 15px auto;
-    }
-    #signOutToggleBtn {
-      margin-top: 15px;
-      background-color: #006400;
-      color: #fff;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      padding: 12px;
-      cursor: pointer;
-      width: 300px;
-    }
-    #signOutToggleBtn:hover {
-      background-color: #004d00;
     }
     .backBtn {
       background-color: #555;
@@ -133,7 +101,6 @@
     <option value="Event Attendance">Event Attendance</option>
   </select>
   <button id="nextToNameBtn">Next</button>
-  <br />
   <button id="signOutToggleBtn">Go to Sign-Out QR Attendance</button>
 </div>
 <div class="container" id="nameSection" style="display:none;">
@@ -214,7 +181,6 @@
     <input type="text" id="signoutDate" readonly />
     <label for="signoutTime">Time:</label>
     <input type="text" id="signoutTime" readonly />
-    <!-- Removed Reason for Sign Out field -->
     <button type="submit">Submit Sign-Out</button>
     <button type="button" id="backFromSignOutFormBtn" class="backBtn">Back</button>
   </form>
@@ -307,7 +273,6 @@
   const signoutName = document.getElementById('signoutName');
   const signoutDate = document.getElementById('signoutDate');
   const signoutTime = document.getElementById('signoutTime');
-  // Reason removed for sign-out form
   const backFromSignOutFormBtn = document.getElementById('backFromSignOutFormBtn');
   const signoutDashboardContainer = document.getElementById('signoutDashboardContainer');
   const signoutTableBody = document.getElementById('signoutTableBody');
@@ -463,8 +428,8 @@
         alert('Please fill all required event fields.');
         return;
       }
-      record.eventType = eventType.value.trim();
-      record.eventTitle = eventTitle.value.trim();
+      record.eventType = eventType.value.trim
+            record.eventTitle = eventTitle.value.trim();
       record.eventDate = eventDate.value;
       record.facilitator = facilitator.value.trim();
     }
@@ -663,19 +628,6 @@
       populateSignOutTable();
     }
   };
-
-  <form id="attendanceForm">
-  <!-- existing form fields... -->
-  <button type="submit">Submit Attendance</button>
-  <button type="reset" id="resetFormBtn">Reset</button>
-  <button type="button" id="backFromFormBtn" class="backBtn">Back</button>
-</form>
-
-document.getElementById('resetFormBtn').onclick = () => {
-  // Optional cleanup logic
-  studentFields.style.display = 'block';
-  eventFields.style.display = 'none';
-};
 
   backToHomeFromSignOutDashboard.onclick = () => {
     signoutDashboardContainer.style.display = 'none';
