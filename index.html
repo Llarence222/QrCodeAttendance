@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QR Code Attendance</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
     body {
@@ -19,6 +19,7 @@
       min-height: 100vh;
       padding: 20px;
       text-align: center;
+      overflow-x: hidden;
     }
     h1 {
       font-size: 2.5rem;
@@ -38,6 +39,7 @@
       margin: 10px 0;
       width: 100%;
       max-width: 400px;
+      overflow-wrap: break-word;
     }
     button {
       width: 100%;
@@ -63,7 +65,7 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
-    input[type="text"], input[type="password"], input[type="date"], input[type="time"] {
+    input[type="text"], input[type="password"] {
       width: 100%;
       padding: 10px;
       border-radius: 8px;
@@ -77,10 +79,11 @@
       max-width: 300px;
       margin: 0 auto;
     }
-    ul {
+    ul#attendanceList, ul#eventAttendanceList {
       max-height: 300px;
       overflow-y: auto;
       padding-left: 0;
+      text-align: left;
     }
     ul li {
       list-style-type: none;
@@ -93,16 +96,15 @@
 </head>
 <body>
   <h1>QR Code Attendance</h1>
-
   <div class="button-group" id="selection">
-    <button onclick="startStudentFlow()">Student Attendance</button>
-    <button onclick="startEventFlow()">Event Attendance</button>
+    <button onclick="showStudentForm()">Student Attendance</button>
+    <button onclick="showEventForm()">Event Attendance</button>
     <button onclick="showDashboard()">View Dashboard</button>
   </div>
 
   <div class="form-section" id="studentForm" style="display: none;">
     <label for="fullName">Full Name:</label>
-    <input type="text" id="fullName" placeholder="Enter your full name" oninput="generateQRCode()">
+    <input type="text" id="fullName" placeholder="Enter your full name" oninput="generateQRCode()" />
     <div id="qrCode"></div>
     <button onclick="proceedToScan()" id="proceedBtn" style="display: none;">Proceed to Scan</button>
     <button onclick="goBack()" style="background-color: #333; color: white;">Back</button>
@@ -115,44 +117,30 @@
 
   <div class="form-section" id="studentDetails" style="display: none;">
     <h3>Fill Up Student Info</h3>
-    <input type="text" id="studentNumber" placeholder="Student Number">
-    <input type="text" id="year" placeholder="Year">
-    <input type="text" id="course" placeholder="Course">
-    <input type="text" id="room" placeholder="Room Assigned">
-    <input type="text" id="subject" placeholder="Subject">
-    <input type="text" id="teacher" placeholder="Teacher">
+    <input type="text" id="studentNumber" placeholder="Student Number" />
+    <input type="text" id="year" placeholder="Year" />
+    <input type="text" id="course" placeholder="Course" />
+    <input type="text" id="room" placeholder="Room Assigned" />
+    <input type="text" id="subject" placeholder="Subject" />
+    <input type="text" id="teacher" placeholder="Teacher" />
     <button onclick="saveStudentAttendance()">Submit Attendance</button>
-  </div>
-
-  <div class="form-section" id="eventDetails" style="display: none;">
-    <h3>Fill Up Event Info</h3>
-    <input type="text" id="eventType" placeholder="Event Type">
-    <input type="text" id="eventTitle" placeholder="Event Title">
-    <input type="text" id="facilitator" placeholder="Facilitator">
-    <input type="date" id="eventDate">
-    <input type="time" id="eventTime">
-    <button onclick="saveEventAttendance()">Submit Attendance</button>
   </div>
 
   <div class="form-section" id="dashboard" style="display: none;">
     <h3>Student Attendance Dashboard</h3>
     <ul id="attendanceList"></ul>
+    <button onclick="promptReset('student')">Reset Student Attendance</button>
+
     <h3>Event Attendance Dashboard</h3>
     <ul id="eventAttendanceList"></ul>
+    <button onclick="promptReset('event')">Reset Event Attendance</button>
+
+    <input type="password" id="adminPass" placeholder="Enter admin password to reset" />
     <button onclick="goBackToSelection()">Back</button>
   </div>
 
   <script>
-    let currentMode = '';
-
-    function startStudentFlow() {
-      currentMode = 'student';
-      document.getElementById('selection').style.display = 'none';
-      document.getElementById('studentForm').style.display = 'block';
-    }
-
-    function startEventFlow() {
-      currentMode = 'event';
+    function showStudentForm() {
       document.getElementById('selection').style.display = 'none';
       document.getElementById('studentForm').style.display = 'block';
     }
@@ -170,7 +158,7 @@
       const qrCodeContainer = document.getElementById('qrCode');
       qrCodeContainer.innerHTML = '';
       if (fullName.trim() !== '') {
-        QRCode.toDataURL(currentMode + ':' + fullName)
+        QRCode.toDataURL(fullName)
           .then(url => {
             const img = document.createElement('img');
             img.src = url;
@@ -197,12 +185,7 @@
           alert(`QR Code detected: ${qrCodeMessage}`);
           html5QrCode.stop();
           document.getElementById('scannerSection').style.display = 'none';
-
-          if (qrCodeMessage.startsWith('event')) {
-            document.getElementById('eventDetails').style.display = 'block';
-          } else {
-            document.getElementById('studentDetails').style.display = 'block';
-          }
+          document.getElementById('studentDetails').style.display = 'block';
         },
         errorMessage => {
           console.log(`QR Code no match: ${errorMessage}`);
@@ -230,34 +213,42 @@
         teacher: document.getElementById('teacher').value,
         timestamp: new Date().toLocaleString()
       };
-
       let records = JSON.parse(localStorage.getItem('studentAttendance')) || [];
       records.push(record);
       localStorage.setItem('studentAttendance', JSON.stringify(records));
-      alert("Student attendance saved!");
+      alert("Attendance saved!");
 
       document.getElementById('studentDetails').style.display = 'none';
       document.getElementById('selection').style.display = 'block';
     }
 
-    function saveEventAttendance() {
-      const record = {
-        fullName: document.getElementById('fullName').value,
-        eventType: document.getElementById('eventType').value,
-        eventTitle: document.getElementById('eventTitle').value,
-        facilitator: document.getElementById('facilitator').value,
-        date: document.getElementById('eventDate').value,
-        time: document.getElementById('eventTime').value,
-        timestamp: new Date().toLocaleString()
-      };
+    function showEventForm() {
+      const fullName = prompt("Enter your full name for event attendance:");
+      if (!fullName) return;
 
-      let records = JSON.parse(localStorage.getItem('eventAttendance')) || [];
-      records.push(record);
-      localStorage.setItem('eventAttendance', JSON.stringify(records));
-      alert("Event attendance saved!");
+      const eventType = prompt("Enter Event Type:");
+      const eventTitle = prompt("Enter Event Title:");
+      const facilitator = prompt("Enter Facilitator:");
+      const date = prompt("Enter Date (YYYY-MM-DD):");
+      const time = prompt("Enter Time (HH:MM AM/PM):");
 
-      document.getElementById('eventDetails').style.display = 'none';
-      document.getElementById('selection').style.display = 'block';
+      if (eventType && eventTitle && facilitator && date && time) {
+        const eventRecord = {
+          fullName,
+          eventType,
+          eventTitle,
+          facilitator,
+          date,
+          time,
+          timestamp: new Date().toLocaleString()
+        };
+        let eventData = JSON.parse(localStorage.getItem('eventAttendance')) || [];
+        eventData.push(eventRecord);
+        localStorage.setItem('eventAttendance', JSON.stringify(eventData));
+        alert("Event attendance saved!");
+      } else {
+        alert("All fields are required!");
+      }
     }
 
     function showDashboard() {
@@ -265,48 +256,61 @@
       document.getElementById('dashboard').style.display = 'block';
 
       const studentList = document.getElementById('attendanceList');
+      const eventList = document.getElementById('eventAttendanceList');
       studentList.innerHTML = '';
-      const studentRecords = JSON.parse(localStorage.getItem('studentAttendance')) || [];
+      eventList.innerHTML = '';
 
+      const studentRecords = JSON.parse(localStorage.getItem('studentAttendance')) || [];
       if (studentRecords.length === 0) {
         studentList.innerHTML = '<li>No student attendance records found.</li>';
       } else {
         studentRecords.forEach(record => {
           const li = document.createElement('li');
-          li.innerHTML = `
-            <strong>${record.fullName}</strong><br>
+          li.innerHTML = `<strong>${record.fullName}</strong><br>
             Student #: ${record.studentNumber}<br>
             Year: ${record.year}<br>
             Course: ${record.course}<br>
             Room: ${record.room}<br>
             Subject: ${record.subject}<br>
             Teacher: ${record.teacher}<br>
-            <small>${record.timestamp}</small><hr>
-          `;
+            <small>${record.timestamp}</small><hr>`;
           studentList.appendChild(li);
         });
       }
 
-      const eventList = document.getElementById('eventAttendanceList');
-      eventList.innerHTML = '';
       const eventRecords = JSON.parse(localStorage.getItem('eventAttendance')) || [];
-
       if (eventRecords.length === 0) {
         eventList.innerHTML = '<li>No event attendance records found.</li>';
       } else {
         eventRecords.forEach(record => {
           const li = document.createElement('li');
-          li.innerHTML = `
-            <strong>${record.fullName}</strong><br>
+          li.innerHTML = `<strong>${record.fullName}</strong><br>
             Event Type: ${record.eventType}<br>
             Title: ${record.eventTitle}<br>
             Facilitator: ${record.facilitator}<br>
             Date: ${record.date}<br>
             Time: ${record.time}<br>
-            <small>${record.timestamp}</small><hr>
-          `;
+            <small>${record.timestamp}</small><hr>`;
           eventList.appendChild(li);
         });
+      }
+    }
+
+    function promptReset(type) {
+      const password = document.getElementById('adminPass').value;
+      const correctPassword = "admin123";
+
+      if (password === correctPassword) {
+        if (type === 'student') {
+          localStorage.removeItem('studentAttendance');
+          alert('Student attendance records reset.');
+        } else if (type === 'event') {
+          localStorage.removeItem('eventAttendance');
+          alert('Event attendance records reset.');
+        }
+        showDashboard(); // refresh lists
+      } else {
+        alert('Incorrect admin password!');
       }
     }
 
